@@ -1,0 +1,84 @@
+---
+title: "Webhook Not Firing"
+description: "Troubleshooting CMDB webhook delivery issues"
+---
+
+## Attestations are recorded in Forager but nothing arrives at my endpoint
+
+Work through these checks in order.
+
+**1. Confirm the webhook is enabled.**
+Dashboard → Settings → CMDB Webhooks. The badge next to the webhook name must show **Active**. If it shows **Disabled**, click **Enable**.
+
+**2. Confirm the endpoint URL is reachable from the public internet.**
+Forager pushes from Supabase Edge Function infrastructure — your ServiceNow instance must be reachable publicly (not only from your internal network). Test this by running the curl test from a machine outside your corporate network:
+
+```bash
+curl -X POST "[your-endpoint-url]" \
+  -H "Authorization: Basic [your-credentials]" \
+  -H "Content-Type: application/json" \
+  -d '{"asset_tag":"TEST-001","location":"Test / Floor 1 / Room A","anchor":"Room A","updated_by":"Test","type":"match","timestamp":"2026-05-12T00:00:00Z"}'
+```
+
+If this request fails, the issue is network accessibility, not Forager configuration.
+
+**3. Check ServiceNow REST API logs.**
+In ServiceNow, go to **System Logs → REST API Activity**. Look for recent POST requests from Forager. The response code tells you what happened:
+
+| Response code | Meaning |
+|---|---|
+| `200` | Delivered successfully |
+| `401` | Wrong credentials — see below |
+| `403` | Integration user missing a required role |
+| `404` | CI not found by the asset tag sent |
+| `500` | Script error in your Scripted REST API handler |
+
+**4. Allow up to 10 seconds.**
+Webhook delivery is async — the push happens after the attestation is written to the database, not simultaneously. If you just scanned an asset, wait a few seconds before checking your endpoint logs.
+
+---
+
+## 401 Unauthorized
+
+The `Authorization` header value is incorrect.
+
+- Re-generate the Base64 string carefully:
+  ```bash
+  echo -n "username:password" | base64
+  ```
+  Note the `-n` flag — without it, a newline is included in the encoded string, which breaks authentication.
+- Check for trailing spaces in the Auth Header Value field in Forager Settings.
+- Confirm the integration user's password has not expired or been reset in ServiceNow.
+
+---
+
+## 403 Forbidden
+
+The integration user can authenticate but does not have write access.
+
+- For the Scripted REST API approach: the user needs the `itil` role.
+- For the Import Sets approach: the user needs the `import_transformer` role.
+- Check that these roles are assigned directly on the user record in ServiceNow, not just via group membership, if your ServiceNow instance restricts role inheritance.
+
+---
+
+## 404 — CI not found
+
+The Scripted REST API handler could not find a CI matching the asset tag sent by Forager.
+
+- Confirm the asset tag in Forager exactly matches the value in the ServiceNow `asset_tag` field (case-sensitive).
+- If your ServiceNow asset tags are stored in a different field (e.g., `serial_number` or a custom field), update the GlideRecord query in your script:
+  ```javascript
+  ci.addQuery('your_field_name', assetTag);
+  ```
+- For new assets that have never been imported into ServiceNow, the CI won't exist yet. Consider adding a creation path to the script or handling new assets separately.
+
+---
+
+## Webhook fired but CI fields are not updating
+
+The POST returned `200` but the `u_forager_*` fields on the CI are unchanged.
+
+- Confirm the custom fields exist on the correct table. If your CIs are on a subclass (`cmdb_ci_computer`, `cmdb_ci_server`, etc.) rather than the base `cmdb_ci` table, add the fields to the subclass instead.
+- Check that `ci.update()` is being called in your script — a missing `update()` call writes nothing.
+- Confirm the field names in the script exactly match the column names in the table definition.

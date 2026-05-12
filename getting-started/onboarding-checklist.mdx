@@ -1,0 +1,93 @@
+---
+title: "Onboarding Checklist"
+description: "Step-by-step setup from zero to your first confirmed attestation"
+---
+
+Follow this checklist in order. Each step unlocks the next.
+
+## Phase 1 — Account setup
+
+<Steps>
+  <Step title="Create your company account">
+    Contact Forager support to provision your company account. You will receive an admin invite by email.
+  </Step>
+  <Step title="Accept your admin invite">
+    Click the link in your invite email and set your password. You are now the account admin.
+  </Step>
+  <Step title="Invite your team">
+    In the dashboard, go to **Team** and invite your field technicians. They will receive email invites and download the Forager Android app.
+  </Step>
+</Steps>
+
+## Phase 2 — Location hierarchy
+
+<Steps>
+  <Step title="Set up your location hierarchy">
+    In the Forager app, navigate to **Manage Locations**. Build out your hierarchy from top to bottom:
+    - Campus or site (optional)
+    - Building
+    - Floor
+    - Room
+
+    You only need to create rooms you intend to track assets in. You can add more rooms at any time.
+  </Step>
+  <Step title="Upload floor plans (optional but recommended)">
+    For each floor node, you can upload a floor plan image (JPEG or PNG recommended). This enables the visual floor plan view in the dashboard and helps techs navigate during Device Hunt.
+
+    <Note>
+      PDFs are supported but interactive pins are not available for PDFs. Convert to JPEG or PNG for the best experience.
+    </Note>
+
+    After uploading, tap each room's pin icon to place it on the floor plan. This only needs to be done once.
+  </Step>
+</Steps>
+
+## Phase 3 — Survey
+
+<Steps>
+  <Step title="Run a survey of each room">
+    Survey teaches Forager what each room looks like on the Wi-Fi and Bluetooth spectrum. Without survey, the app cannot determine which room a tech is currently in.
+
+    For each room:
+    1. Have a tech stand in the room with the Forager app open
+    2. Open **Survey Mode**
+    3. Select the floor and room
+    4. Tap **Capture** — the app takes 4–6 RF scans over about 30 seconds
+    5. Move to the next room and repeat
+
+    A full floor of 10–15 rooms typically takes 20–30 minutes.
+  </Step>
+  <Step title="Check coverage quality">
+    After surveying, open **Coverage** in the app. Rooms show as:
+    - **Green** — well surveyed, ready for attestation
+    - **Yellow** — thin coverage, consider re-surveying
+    - **Gray** — not yet surveyed
+
+    All rooms should be green before starting regular attestation work.
+  </Step>
+</Steps>
+
+## Phase 4 — First attestation
+
+<Steps>
+  <Step title="Scan your first asset">
+    Have a tech stand in a surveyed room, open the Forager app, and scan an asset barcode. The app will:
+    - Identify the current room from the RF fingerprint
+    - Look up the asset's recorded location
+    - Confirm a match or flag a mismatch
+    - Write an attestation record
+
+    That attestation record is now visible in the dashboard.
+  </Step>
+  <Step title="Verify in the dashboard">
+    Log into the dashboard at [dashboard.hiveriselabs.com](https://dashboard.hiveriselabs.com). Open **Floor Plan** and select the floor where you just scanned. The room pin should show the asset count with a green indicator (confirmed within 7 days).
+  </Step>
+</Steps>
+
+## Phase 5 — CMDB integration (optional)
+
+If your organization uses ServiceNow or another CMDB, configure a webhook to push every attestation automatically.
+
+<Card title="ServiceNow Integration Guide" icon="plug" href="/integrations/servicenow-scripted-rest-api">
+  Connect Forager to ServiceNow to push location updates to CI records automatically.
+</Card>

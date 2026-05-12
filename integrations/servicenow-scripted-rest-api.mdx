@@ -1,0 +1,191 @@
+---
+title: "ServiceNow — Scripted REST API"
+description: "Push Forager attestations directly to CI records using a ServiceNow Scripted REST API"
+---
+
+This guide sets up a ServiceNow endpoint that receives Forager attestations and updates the matching CI record in real time.
+
+**Choose this approach if** your team wants immediate CI visibility and full control over which fields get updated.
+
+<Note>
+  If your organization requires change-controlled or staged CMDB writes, see [ServiceNow — Import Sets](/integrations/servicenow-import-sets) instead.
+</Note>
+
+## What happens
+
+```
+Field tech scans asset (Forager app)
+  → Attestation recorded in Forager
+  → Forager POSTs to your ServiceNow endpoint
+  → Script looks up CI by asset tag
+  → CI fields updated immediately
+```
+
+## ServiceNow setup
+
+### Step 1 — Create a dedicated integration user
+
+1. Go to **User Administration → Users → New**
+2. Set:
+   - **User ID:** `forager_integration`
+   - **Web service access only:** ✅
+3. Set a strong password and save it — you'll enter it in Forager
+4. On the **Roles** tab, add:
+   - `rest_service` — allows REST API authentication
+   - `itil` — allows creating and updating CI records
+
+<Warning>
+  Do not grant the `admin` role. Use the minimum roles required.
+</Warning>
+
+### Step 2 — Create the Scripted REST API
+
+1. Go to **System Web Services → Scripted REST APIs → New**
+2. Set **Name:** `Forager Asset Location`, **API ID:** `forager_asset_location`
+3. Save
+
+### Step 3 — Add a Resource
+
+1. In the **Resources** tab, click **New**
+2. Set **Name:** `Receive Attestation`, **HTTP method:** `POST`, **Relative path:** `/attestation`
+3. Paste this script:
+
+```javascript
+(function process(/*RESTAPIRequest*/ request, /*RESTAPIResponse*/ response) {
+
+    var body       = request.body.data;
+    var assetTag   = body.asset_tag   || '';
+    var location   = body.location    || '';
+    var anchorName = body.anchor      || '';
+    var updatedBy  = body.updated_by  || '';
+    var eventType  = body.type        || '';
+    var timestamp  = body.timestamp   || '';
+
+    if (!assetTag) {
+        response.setStatus(400);
+        response.setBody({ error: 'asset_tag is required' });
+        return;
+    }
+
+    // Find CI by asset_tag field, fall back to name
+    var ci = new GlideRecord('cmdb_ci');
+    ci.addQuery('asset_tag', assetTag);
+    ci.query();
+
+    if (!ci.next()) {
+        ci = new GlideRecord('cmdb_ci');
+        ci.addQuery('name', assetTag);
+        ci.query();
+        if (!ci.next()) {
+            response.setStatus(404);
+            response.setBody({ error: 'CI not found', asset_tag: assetTag });
+            return;
+        }
+    }
+
+    // Write to custom Forager fields (see Step 4)
+    ci.u_forager_location     = location;
+    ci.u_forager_anchor       = anchorName;
+    ci.u_forager_confirmed_at = timestamp;
+    ci.u_forager_confirmed_by = updatedBy;
+    ci.u_forager_event_type   = eventType;
+
+    ci.work_notes =
+        '[Forager] Location confirmed: ' + location +
+        '\nConfirmed by: ' + updatedBy +
+        '\nEvent: ' + eventType +
+        '\nTimestamp: ' + timestamp;
+
+    ci.update();
+
+    response.setStatus(200);
+    response.setBody({ success: true, sys_id: ci.getUniqueValue() });
+
+})(request, response);
+```
+
+4. Save the resource
+
+### Step 4 — Add custom fields to cmdb_ci
+
+The script writes to five custom fields. Create them on `cmdb_ci` (or a specific subclass):
+
+1. Open any CI record → right-click a column header → **Configure → Table**
+2. Open **Columns** and add:
+
+| Column label | Column name | Type | Max length |
+|---|---|---|---|
+| Forager Location | `u_forager_location` | String | 500 |
+| Forager Anchor | `u_forager_anchor` | String | 200 |
+| Forager Confirmed At | `u_forager_confirmed_at` | String | 50 |
+| Forager Confirmed By | `u_forager_confirmed_by` | String | 200 |
+| Forager Event Type | `u_forager_event_type` | String | 50 |
+
+<Note>
+  These are string fields rather than the native ServiceNow `location` reference field. The native field requires a `sys_id` from the `cmn_location` table. Forager sends a human-readable breadcrumb (`Building A / Floor 2 / IT Office`), which maps cleanly to a string field. A Transform Map can bridge these if needed later.
+</Note>
+
+### Step 5 — Get your endpoint URL
+
+Your endpoint URL follows this pattern:
+```
+https://[your-instance].service-now.com/api/[namespace]/forager_asset_location/attestation
+```
+
+Find your namespace on the Scripted REST API record or via **Explore REST API**. Copy the full URL.
+
+## Forager dashboard setup
+
+1. Go to **Settings → CMDB Webhooks → Add webhook**
+2. Fill in:
+
+| Field | Value |
+|---|---|
+| Name | `ServiceNow Production` |
+| Endpoint URL | Your URL from Step 5 |
+| Auth Header Name | `Authorization` |
+| Auth Header Value | `Basic [base64(username:password)]` |
+
+### Generating the Basic Auth value
+
+```bash
+# Linux / Mac
+echo -n "forager_integration:YourPassword" | base64
+
+# Windows PowerShell
+[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes("forager_integration:YourPassword"))
+```
+
+Prefix the output with `Basic `: `Basic Zm9yYWdlcl9pbnRlZ3JhdGlvbjpZb3VyUGFzc3dvcmQ=`
+
+## Testing
+
+```bash
+curl -X POST "https://[instance].service-now.com/api/[namespace]/forager_asset_location/attestation" \
+  -H "Authorization: Basic [your-base64-value]" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "asset_tag": "LAPTOP-00412",
+    "location": "Main Building / Floor 2 / IT Office",
+    "anchor": "IT Office",
+    "updated_by": "Test User",
+    "type": "match",
+    "timestamp": "2026-05-12T19:00:00Z"
+  }'
+```
+
+**Expected response:**
+```json
+{ "success": true, "sys_id": "abc123..." }
+```
+
+Then open the CI record in ServiceNow and verify the `u_forager_*` fields were updated.
+
+## Troubleshooting
+
+| Response | Cause | Fix |
+|---|---|---|
+| `401 Unauthorized` | Wrong credentials | Re-generate the Base64 string; check for trailing spaces |
+| `403 Forbidden` | Missing role | Add `itil` role to the integration user |
+| `404 Not Found` | CI not found by asset tag | Verify asset tag matches exactly in ServiceNow; check the `asset_tag` field vs `name` field |
+| `500` | Script error | Check **System Logs → REST API Activity** in ServiceNow for the stack trace |

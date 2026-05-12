@@ -1,0 +1,58 @@
+---
+title: "Webhook Settings"
+description: "Configure Forager to push attestations to ServiceNow or any CMDB"
+---
+
+Webhooks let Forager automatically notify an external system every time an attestation is recorded. The most common use is pushing location updates to ServiceNow CI records.
+
+## Where to find it
+
+Dashboard → **Settings** → **CMDB Webhooks** (admin access required).
+
+## Adding a webhook
+
+<Steps>
+  <Step title="Click Add webhook">
+    On the Settings page, click **Add webhook**.
+  </Step>
+  <Step title="Enter the endpoint details">
+    | Field | What to enter |
+    |---|---|
+    | **Name** | A label for your own reference, e.g. `ServiceNow Production` |
+    | **Endpoint URL** | The full URL Forager will POST to on every attestation |
+    | **Auth Header Name** | The HTTP header used for authentication, e.g. `Authorization` |
+    | **Auth Header Value** | The credential value, e.g. `Basic abc123...` or `Bearer token...` |
+  </Step>
+  <Step title="Customize the payload (optional)">
+    The default payload template works for most setups. If your endpoint expects a different JSON structure, edit the template using the available variables listed below the editor.
+  </Step>
+  <Step title="Enable and save">
+    Check **Enable this webhook** and click **Add webhook**. The webhook is live immediately.
+  </Step>
+</Steps>
+
+## Available payload variables
+
+| Variable | Description |
+|---|---|
+| `{{asset_tag}}` | The scanned asset tag |
+| `{{location_path}}` | Full breadcrumb, e.g. `Building A / Floor 2 / IT Office` |
+| `{{anchor_name}}` | Room name only, e.g. `IT Office` |
+| `{{updated_by}}` | Display name of the tech who scanned |
+| `{{type}}` | `match`, `mismatch_confirmed`, `mismatch_dismissed`, or `new_asset` |
+| `{{timestamp}}` | ISO 8601 UTC timestamp |
+
+## Disabling a webhook temporarily
+
+Click **Disable** on the webhook card. Attestations continue to be recorded in Forager — they are not queued for later delivery. Re-enable when ready; only new attestations from that point forward will be sent.
+
+## Detailed setup guides
+
+<CardGroup cols={2}>
+  <Card title="ServiceNow — Scripted REST API" icon="code" href="/integrations/servicenow-scripted-rest-api">
+    Recommended for direct, real-time CI updates
+  </Card>
+  <Card title="ServiceNow — Import Sets" icon="table" href="/integrations/servicenow-import-sets">
+    For environments that require staged CMDB writes
+  </Card>
+</CardGroup>

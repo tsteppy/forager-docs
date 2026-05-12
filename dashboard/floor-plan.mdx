@@ -1,0 +1,52 @@
+---
+title: "Floor Plan View"
+description: "How to read and use the floor plan dashboard to see where your assets are"
+---
+
+The floor plan view shows every tracked asset pinned to its last confirmed location on a building floor plan. It is the fastest way to answer "where are all my devices?" without running a report.
+
+## Opening the floor plan
+
+Log in to [dashboard.hiveriselabs.com](https://dashboard.hiveriselabs.com) and click **Floor Plan** in the left navigation.
+
+Use the **Select floor** dropdown to switch between floors and buildings.
+
+## Reading the pins
+
+Each pin on the floor plan represents a room. The pin color indicates how recently assets in that room were confirmed.
+
+| Color | Meaning |
+|---|---|
+| 🟢 Green | At least one asset confirmed within the last 7 days |
+| 🟡 Amber | Most recent confirmation was 7–30 days ago |
+| 🔴 Red | No confirmation in over 30 days, or no confirmation ever recorded |
+| ⚪ Gray | Room has no assets assigned to it |
+
+The number on the pin is the total asset count for that room.
+
+## Clicking a pin
+
+Clicking a pin opens a detail panel on the right side of the screen showing every asset in that room:
+
+- Asset tag
+- Last confirmed date and time
+- Which tech confirmed it
+- Confirmation type (match, mismatch confirmed, new asset)
+
+## Rooms without map positions
+
+If a room appears in the **"Rooms without map position"** section below the floor plan, it means the room exists in the location hierarchy but has not been pinned on the floor plan image yet. Use the Forager Android app to pin those rooms.
+
+## Floor plan image quality
+
+Floor plans display best as JPEG or PNG files. If a PDF was uploaded, the dashboard shows a room list in place of the interactive pin view.
+
+<Note>
+  If pins appear misaligned after a floor plan image was replaced, a tech with admin access can run the calibration flow in the app to realign existing room positions to the new image.
+</Note>
+
+## Compliance use
+
+The floor plan view is designed for compliance reviews. When an auditor asks "show me where your regulated devices are," this view answers it visually — no spreadsheet exports required.
+
+Pin colors give an immediate read on attestation recency across the entire floor. Red pins identify rooms that need attention.

@@ -1,0 +1,129 @@
+---
+title: "ServiceNow — Import Sets"
+description: "Stage Forager attestations through a ServiceNow Import Set for change-controlled CMDB writes"
+---
+
+This guide sets up a ServiceNow Import Set that receives Forager attestations into a staging table. A Transform Map then applies the data to the CMDB on your schedule or automatically on insert.
+
+**Choose this approach if** your organization requires staged, validated, or change-controlled CMDB updates before data lands on CI records.
+
+<Note>
+  For direct, real-time CI updates without a staging step, see [ServiceNow — Scripted REST API](/integrations/servicenow-scripted-rest-api) instead.
+</Note>
+
+## What happens
+
+```
+Field tech scans asset (Forager app)
+  → Attestation recorded in Forager
+  → Forager POSTs row to your Import Set table
+  → Transform Map maps fields to CI records
+  → CI records updated on transform run
+```
+
+## ServiceNow setup
+
+### Step 1 — Create a dedicated integration user
+
+Same as the Scripted REST API guide — create a `forager_integration` user with:
+- `rest_service` role
+- `import_transformer` role (instead of `itil`)
+
+### Step 2 — Create the Import Set table
+
+1. Go to **System Import Sets → Administration → Tables → Create table**
+2. Set:
+   - **Label:** `Forager Attestation Import`
+   - **Name:** `u_forager_attestation_import` (auto-populated)
+   - **Import set table:** ✅
+3. Add columns:
+
+| Column label | Column name | Type |
+|---|---|---|
+| Asset Tag | `u_asset_tag` | String (100) |
+| Location Path | `u_location_path` | String (500) |
+| Anchor Name | `u_anchor_name` | String (200) |
+| Updated By | `u_updated_by` | String (200) |
+| Event Type | `u_event_type` | String (50) |
+| Timestamp | `u_timestamp` | String (50) |
+
+4. Save
+
+### Step 3 — Create a Transform Map
+
+1. Go to **System Import Sets → Administration → Transform Maps → New**
+2. Set:
+   - **Name:** `Forager to CMDB CI`
+   - **Source table:** `u_forager_attestation_import`
+   - **Target table:** `cmdb_ci` (or your specific CI subclass)
+3. On the **Field Maps** tab, map:
+
+| Source field | Target field | Coalesce |
+|---|---|---|
+| `u_asset_tag` | `asset_tag` | ✅ (used to find the existing CI) |
+| `u_location_path` | `u_forager_location` | |
+| `u_anchor_name` | `u_forager_anchor` | |
+| `u_updated_by` | `u_forager_confirmed_by` | |
+| `u_event_type` | `u_forager_event_type` | |
+| `u_timestamp` | `u_forager_confirmed_at` | |
+
+<Note>
+  The `u_forager_*` target fields need to be created on `cmdb_ci` first. See Step 4 of the [Scripted REST API guide](/integrations/servicenow-scripted-rest-api#step-4--add-custom-fields-to-cmdb_ci) for instructions.
+</Note>
+
+4. Set **Coalesce** on `u_asset_tag → asset_tag` so the transform updates the existing CI rather than creating a new one
+5. Save
+
+### Step 4 — Configure auto-transform (optional)
+
+To transform automatically on every import (real-time behavior):
+
+1. On the Transform Map, check **Run business rules**
+2. Create a **Business Rule** on the import table:
+   - **When:** after insert
+   - **Script:**
+     ```javascript
+     var transformer = new GlideImportSetTransformer();
+     transformer.transformAllMaps(current);
+     ```
+
+Without auto-transform, rows accumulate in the staging table and can be transformed on a schedule via a scheduled job.
+
+## Forager dashboard setup
+
+1. Go to **Settings → CMDB Webhooks → Add webhook**
+2. The endpoint URL is the ServiceNow Table API pointing at your import table:
+   ```
+   https://[instance].service-now.com/api/now/table/u_forager_attestation_import
+   ```
+3. Auth Header: `Authorization` / `Basic [base64(username:password)]`
+4. **Replace the payload template** with a flat field map matching your import table columns:
+
+```json
+{
+  "u_asset_tag": "{{asset_tag}}",
+  "u_location_path": "{{location_path}}",
+  "u_anchor_name": "{{anchor_name}}",
+  "u_updated_by": "{{updated_by}}",
+  "u_event_type": "{{type}}",
+  "u_timestamp": "{{timestamp}}"
+}
+```
+
+## Testing
+
+```bash
+curl -X POST "https://[instance].service-now.com/api/now/table/u_forager_attestation_import" \
+  -H "Authorization: Basic [your-base64-value]" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "u_asset_tag": "LAPTOP-00412",
+    "u_location_path": "Main Building / Floor 2 / IT Office",
+    "u_anchor_name": "IT Office",
+    "u_updated_by": "Test User",
+    "u_event_type": "match",
+    "u_timestamp": "2026-05-12T19:00:00Z"
+  }'
+```
+
+Verify a new row appears in your `u_forager_attestation_import` table, then run the Transform Map manually to confirm it maps to the correct CI.

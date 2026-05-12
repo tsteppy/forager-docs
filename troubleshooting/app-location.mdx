@@ -1,0 +1,44 @@
+---
+title: "App Not Finding My Location"
+description: "What to do when Forager shows 'Locating...' or classifies you in the wrong room"
+---
+
+## The app shows "Locating..." for more than 30 seconds
+
+The app needs visible Wi-Fi access points and/or Bluetooth devices to determine your location. If it can't find enough signal, it stays in the locating state.
+
+**Check these in order:**
+
+1. **Wi-Fi is enabled on your phone.** Forager does not need to be connected to a network — just Wi-Fi scanning needs to be on. Go to phone Settings → Wi-Fi and confirm it is toggled on even if you're not connected to a network.
+
+2. **Bluetooth is enabled.** Same — Forager uses Bluetooth signals for location, not for connecting to devices. Toggle Bluetooth on in phone Settings.
+
+3. **The room has been surveyed.** If no survey data exists for this area, the app cannot classify it. Open the app's Coverage view to see which rooms are surveyed. Unsurveyed rooms appear gray.
+
+4. **Location permissions are granted.** Forager requires "Allow all the time" for location access to scan Wi-Fi and BLE in the background. Go to phone Settings → Apps → Forager → Permissions → Location and set to **Allow all the time**.
+
+## The app puts me in the wrong room
+
+The app is classifying you in a room that isn't where you are.
+
+**Most common causes:**
+
+- **Thin survey data.** If a room was only surveyed once or quickly, the fingerprint may not be distinct enough. Open Coverage, find the room, and tap **Re-survey** to take additional captures.
+
+- **The physical environment changed.** New Wi-Fi access points, moved equipment, or structural changes (walls, furniture) can shift the signal pattern. Re-survey affected rooms.
+
+- **Standing in a doorway or hallway.** Signal patterns at room boundaries are ambiguous. Stand in the center of the room you intend to scan from before scanning assets.
+
+- **Two rooms with similar signal profiles.** Rooms that are physically close together can have overlapping RF signatures. Take extra survey captures in both rooms while standing in different spots.
+
+## Location confidence is low
+
+A low confidence score means the current signal pattern is not a strong match for any surveyed room. Attestations recorded at low confidence are still valid but may reflect an incorrect room.
+
+**Fix:** Re-survey the current room by taking 4–6 additional captures from different positions within the room.
+
+## The app shows a room from the wrong floor
+
+The floor estimator uses barometric pressure (if available on your device) and signal patterns to separate floors. If your device does not have a barometric sensor, floor separation relies entirely on RF fingerprints.
+
+**Fix:** Ensure each floor has been surveyed independently. Survey captures from Floor 1 should not be taken from a room directly below a surveyed Floor 2 room — the signal bleed can confuse the estimator.

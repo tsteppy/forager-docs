@@ -1,0 +1,69 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "Forager Help Center",
+  "description": "How-to guides, troubleshooting, and integration documentation for Forager customers.",
+  "colors": {
+    "primary": "#E65100",
+    "light": "#FF8A50",
+    "dark": "#BF360C"
+  },
+  "favicon": "/logo/favicon.png",
+  "logo": {
+    "light": "/logo/forager-light.svg",
+    "dark": "/logo/forager-dark.svg",
+    "href": "https://hiveriselabs.com"
+  },
+  "navbar": {
+    "primary": {
+      "type": "button",
+      "label": "Go to Dashboard",
+      "href": "https://dashboard.hiveriselabs.com"
+    }
+  },
+  "footer": {
+    "socials": {}
+  },
+  "navigation": {
+    "groups": [
+      {
+        "group": "Getting Started",
+        "pages": [
+          "getting-started/introduction",
+          "getting-started/onboarding-checklist"
+        ]
+      },
+      {
+        "group": "Field Tech Guide",
+        "pages": [
+          "field-tech/scanning-assets",
+          "field-tech/understanding-confirmations",
+          "field-tech/device-hunt"
+        ]
+      },
+      {
+        "group": "Dashboard",
+        "pages": [
+          "dashboard/floor-plan",
+          "dashboard/team",
+          "dashboard/webhook-settings"
+        ]
+      },
+      {
+        "group": "Integrations",
+        "pages": [
+          "integrations/servicenow-scripted-rest-api",
+          "integrations/servicenow-import-sets"
+        ]
+      },
+      {
+        "group": "Troubleshooting",
+        "pages": [
+          "troubleshooting/app-location",
+          "troubleshooting/floor-plan",
+          "troubleshooting/webhooks"
+        ]
+      }
+    ]
+  }
+}

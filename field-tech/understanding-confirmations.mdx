@@ -1,0 +1,53 @@
+---
+title: "Understanding Confirmations"
+description: "What match, mismatch, and new asset events mean and when they're recorded"
+---
+
+Every barcode scan in Forager produces a confirmation — a structured record of which asset was seen, where, by whom, and when. These records are the core compliance output of Forager.
+
+## Confirmation types
+
+| Type | What it means |
+|---|---|
+| **Match** | Asset is in its recorded location. No action needed. |
+| **Mismatch — confirmed** | Asset was in a different room. Tech confirmed the new location. Location updated. |
+| **Mismatch — dismissed** | Asset was in a different room. Tech dismissed the update. Location unchanged. |
+| **New asset** | Asset tag not previously seen. Current location recorded as first known location. |
+
+## What gets recorded
+
+Every confirmation captures:
+
+- **Asset tag** — the barcode scanned
+- **Location** — the room the tech was in when they scanned
+- **Tech** — who scanned it
+- **Timestamp** — when the scan happened
+- **Type** — match, mismatch confirmed, mismatch dismissed, or new asset
+
+This record is permanent and cannot be edited. It is your audit trail.
+
+## How location is determined
+
+Forager determines the tech's current room by comparing live Wi-Fi and Bluetooth signals against a fingerprint database built during survey. The room with the closest matching signal pattern is selected.
+
+The app shows a **confidence level** alongside the current room. Higher confidence means the signal pattern closely matched a surveyed room. If confidence is low, consider re-surveying that area.
+
+## Compliance use
+
+Confirmation records are the evidence that a device was physically located and verified. For Joint Commission, OIG, or similar audits, each record shows:
+
+- The device was physically present in a specific room
+- A named technician verified it
+- It happened at a specific time
+
+Your IT director can view and export these records from the dashboard.
+
+## When confirmations do NOT fire
+
+- Scanning a barcode that cannot be read (damaged label, wrong format)
+- Scanning while the app has not yet determined a room (the "Locating…" state)
+- The app is offline and storage is full (extremely rare)
+
+<Warning>
+  Do not scan assets while walking between rooms. Wait for the app to lock onto a room before scanning to ensure the location is recorded accurately.
+</Warning>

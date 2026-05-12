@@ -1,0 +1,50 @@
+---
+title: "What is Forager?"
+description: "How Forager tracks asset locations without dedicated audit walks"
+---
+
+Forager is an asset location tracking system for IT teams. It answers the question **"where is this device right now?"** — accurately, continuously, and without scheduling audits.
+
+## How it works
+
+Field technicians carry the Forager app on their Android device as they do normal IT work. When a tech is in a room, the app uses Wi-Fi and Bluetooth signals to determine which location they're in. When the tech scans an asset barcode, Forager compares the device's recorded location to where the tech currently is and records a confirmation.
+
+Location data accumulates as a side effect of existing work — no dedicated walks, no extra steps.
+
+## Core concepts
+
+<CardGroup cols={2}>
+  <Card title="Survey" icon="map">
+    A tech walks each room once and captures RF signals. This teaches Forager what each room "looks like" on the radio spectrum. Survey takes a few minutes per room and only needs to be repeated if the physical environment changes significantly.
+  </Card>
+  <Card title="Attestation" icon="circle-check">
+    Every time a tech scans an asset, Forager records a confirmation — which device, which room, which tech, and when. These are your compliance records.
+  </Card>
+  <Card title="Presence Confirmation" icon="location-dot">
+    The live workflow. Tech opens the app, walks to a room, and scans barcodes. Forager confirms each asset is where it's supposed to be, or flags a mismatch.
+  </Card>
+  <Card title="Device Hunt" icon="magnifying-glass">
+    When an asset can't be found, a tech uses Device Hunt to navigate to the last confirmed location. The app shows a floor plan with the device's last known room and updates as the tech moves.
+  </Card>
+</CardGroup>
+
+## Who uses each part
+
+| Role | What they use |
+|---|---|
+| **Field tech** | Android app — scanning assets, running device hunts |
+| **IT director / manager** | Dashboard — floor plan view, attestation history, team oversight |
+| **IT admin** | Dashboard settings — webhook configuration, team management |
+| **ServiceNow admin** | Integration guide — connecting Forager to your CMDB |
+
+## What Forager does not do
+
+- Forager does not track people — only assets
+- Forager does not require dedicated hardware (no beacons, no sensors)
+- Forager does not require GPS or active internet on the device during a scan
+
+## Next step
+
+<Card title="Onboarding Checklist" icon="list-check" href="/getting-started/onboarding-checklist">
+  Follow the step-by-step setup checklist to get your team collecting attestations.
+</Card>

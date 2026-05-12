@@ -1,0 +1,54 @@
+---
+title: "Scanning Assets"
+description: "How to confirm asset locations during your normal IT work"
+---
+
+The Forager app records asset locations as a side effect of your existing work. You do not need to run a dedicated audit — just scan barcodes when you're already near equipment.
+
+## Before you start
+
+- Your location must be surveyed. If the app cannot determine your current room, it will tell you.
+- You need a line-of-sight to the asset's barcode label.
+
+## How to scan
+
+<Steps>
+  <Step title="Open the app and wait for location lock">
+    Open Forager. The app begins scanning Wi-Fi and Bluetooth signals in the background. Wait for the **current room** indicator to show a room name. This usually takes 5–15 seconds.
+
+    If the indicator shows "Locating…" for more than 30 seconds, see [App not finding my location](/troubleshooting/app-location).
+  </Step>
+  <Step title="Scan the barcode">
+    Tap the scan button and point your camera at the asset tag barcode. The app accepts most standard barcode formats (QR, Code 128, Code 39).
+  </Step>
+  <Step title="Review the result">
+    The app shows one of three outcomes:
+    - **Match** — the asset is where it's supposed to be. A confirmation is recorded automatically.
+    - **Mismatch** — the asset was last recorded in a different room. See below.
+    - **New asset** — the asset tag is not in Forager yet. The app records its current location as the first known location.
+  </Step>
+</Steps>
+
+## Handling a mismatch
+
+A mismatch means the asset's recorded location does not match the room you're currently in.
+
+<Note>
+  Mismatches are normal. Equipment gets moved. The important thing is to resolve them accurately.
+</Note>
+
+When a mismatch appears, you have two options:
+
+**Update location** — confirm the asset is actually here now. Forager updates the recorded location and writes a `mismatch_confirmed` attestation. Use this when the device has genuinely been moved.
+
+**Dismiss** — leave the recorded location unchanged. Forager writes a `mismatch_dismissed` attestation. Use this when you picked up the device to service it and will return it to its original location, or when you believe the current room classification is incorrect.
+
+## Tips for accurate scanning
+
+- Stand still when the app is determining your location — walking between rooms while scanning can cause the app to classify you in the wrong room
+- Scan assets in the room they live in, not from a hallway or doorway
+- If you moved a device for repair, scan it again when you return it
+
+## Offline scanning
+
+Forager can record scans without an internet connection. Attestations are queued locally and synced when connectivity is restored. The room classification still works offline since it uses local RF fingerprints.

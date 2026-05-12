@@ -1,0 +1,50 @@
+---
+title: "Floor Plan Issues"
+description: "Troubleshooting floor plan upload, display, and pin alignment problems"
+---
+
+## Floor plan is not showing in the dashboard
+
+1. **Check that an image was uploaded.** In the Forager app, go to **Manage Locations**, find the floor node, and confirm a floor plan image is attached.
+
+2. **PDF files show a room list, not a map.** The interactive pin view requires a JPEG or PNG. If you uploaded a PDF, convert it to an image and re-upload.
+
+3. **Signed URL may have expired.** Refresh the dashboard page. Floor plan images load via a 1-hour signed URL — if you left the tab open for a long time, reload to get a fresh URL.
+
+## Pins are misaligned after replacing the floor plan
+
+When a floor plan image is replaced, the room pin positions (recorded as fractions of the original image dimensions) may no longer match the new image if it has a different scale, rotation, or crop.
+
+**Fix using the calibration flow:**
+
+<Steps>
+  <Step title="Do not delete the old floor plan first">
+    The calibration flow needs the old image as a reference. If the old image is still attached, Forager will offer a calibration step automatically when you tap the upload button.
+  </Step>
+  <Step title="Tap the floor plan upload button">
+    In **Manage Locations**, tap the floor plan icon on the floor node. If positioned rooms exist, you will see a **"Replace Floor Plan?"** warning. Tap **Continue**.
+  </Step>
+  <Step title="Tap two reference points on the old image">
+    The calibration screen shows the current floor plan. Tap two points you can identify on both the old and new image — room corners, door frames, or landmarks work well.
+  </Step>
+  <Step title="Select the new image and tap the same two points">
+    Pick the new image from your device. Tap the same two reference points on the new image.
+  </Step>
+  <Step title="Review the preview and confirm">
+    The app shows a preview of the transformed pin positions over the new image. If they look correct, tap **Confirm**.
+  </Step>
+</Steps>
+
+## Deleted the old floor plan before calibrating
+
+If the old image was deleted before running calibration, the reference is gone and automatic pin alignment is not possible.
+
+When you upload a new floor plan, the app will show a **"Room Positions May Be Stale"** warning. Tap **Upload Anyway**, then re-pin each room manually using the floor plan survey tap-to-pin flow.
+
+## Floor plan image looks blurry or low quality
+
+Floor plans render best at 2000px or wider on the longest side. If the image looks blurry at full scale, upload a higher-resolution export of the floor plan.
+
+## Rooms not appearing on the floor plan
+
+Rooms only appear as pins if they have been pinned on the floor plan. Open Survey Mode, select the floor, and use the tap-to-pin interface to place each room. Rooms that have been created in the location hierarchy but not yet pinned appear in the **"Rooms without map position"** list below the floor plan in the dashboard.
