@@ -4,9 +4,9 @@
   "name": "Forager Help Center",
   "description": "How-to guides, troubleshooting, and integration documentation for Forager customers.",
   "colors": {
-    "primary": "#E65100",
-    "light": "#FF8A50",
-    "dark": "#BF360C"
+    "primary": "#FFAA17",
+    "light": "#FFC653",
+    "dark": "#CC8800"
   },
   "favicon": "/logo/favicon.png",
   "logo": {
