@@ -21,6 +21,15 @@
       "href": "https://dashboard.hiveriselabs.com"
     }
   },
+  "font": {
+    "headings": {
+      "family": "Teko",
+      "weight": 500
+    },
+    "body": {
+      "family": "Rubik"
+    }
+  },
   "footer": {
     "socials": {}
   },
