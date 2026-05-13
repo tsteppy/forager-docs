@@ -31,7 +31,18 @@
     }
   },
   "footer": {
-    "socials": {}
+    "socials": {},
+    "links": [
+      {
+        "header": "Support",
+        "items": [
+          {
+            "label": "Email Support",
+            "url": "mailto:support@hiveriselabs.com"
+          }
+        ]
+      }
+    ]
   },
   "navigation": {
     "groups": [
