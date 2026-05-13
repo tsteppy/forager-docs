@@ -1,0 +1,81 @@
+---
+title: "Reports"
+description: "Filter and export asset confirmation status for audits and compliance reviews"
+---
+
+## Overview
+
+The Reports page gives Team Leads a filterable view of every asset in the system and its current confirmation status. Apply filters to answer questions like "which devices on Floor 2 haven't been seen in the past year?" then export the result as a CSV to share with an auditor.
+
+Reports are accessed from the dashboard sidebar under **Reports**.
+
+---
+
+## Asset Status
+
+Every asset in the system has one of three statuses:
+
+| Status | Meaning |
+|---|---|
+| **Confirmed** | The asset has at least one successful presence confirmation on record. The most recent attestation was a match — a tech was in the asset's recorded location when they scanned it. |
+| **Mismatch** | The asset has been scanned, but the most recent attestation was a mismatch — the tech who scanned it was not in the asset's recorded location. The location may be stale. |
+| **Never confirmed** | The asset exists in Forager's registry but has never received a successful match attestation. It may have been imported from a CMDB, added manually, or first seen during a scan that triggered a new-asset or mismatch event — but a clean confirmation has never been recorded. |
+
+A "Never confirmed" asset is not necessarily lost or misplaced. It may simply not have been encountered yet during normal field work. High counts of never-confirmed assets on a floor typically indicate that area hasn't been swept.
+
+---
+
+## Filters
+
+Use the filter bar at the top of the Reports page to narrow the table.
+
+| Filter | What it does |
+|---|---|
+| **Location** | Shows only assets whose recorded location is within the selected node. Selecting a floor shows assets in all rooms on that floor. Selecting a room shows only that room. |
+| **Status** | Filters to Confirmed, Mismatch, or Never confirmed assets only. |
+| **Tech** | Shows only assets whose most recent confirmation was performed by a specific team member. |
+| **Not seen in N days** | Shows assets that have not received a successful confirmation in the selected number of days — or have never been confirmed. Options: 30, 90, 180, or 365 days. |
+
+Filters combine — you can filter to "all Mismatch assets on Floor 2 not seen in 90 days" by setting both Status and Not seen in N days together.
+
+The active filter set is reflected in the page URL, so filtered views can be bookmarked or shared.
+
+---
+
+## Columns
+
+| Column | Description |
+|---|---|
+| **Asset Tag** | The asset's identifier, typically matching the barcode on the physical device. |
+| **Recorded Location** | The location currently on record for this asset — the full path from building to room. |
+| **Status** | Current confirmation status (see above). |
+| **Last Confirmed** | How long ago the most recent successful match attestation was recorded. |
+| **Last Tech** | The team member who performed the most recent confirmation. |
+| **Confirmations** | Total number of successful match attestations ever recorded for this asset. |
+| **Mismatches** | Total number of mismatch events ever recorded. A high mismatch count relative to confirmations may indicate the asset moves frequently or its recorded location is wrong. |
+
+---
+
+## Exporting to CSV
+
+Click **Export CSV** to download the current filtered view as a `.csv` file. The export respects all active filters — if you've filtered to Floor 2 assets not seen in 365 days, the export contains only those rows.
+
+The file is named `forager-report-YYYY-MM-DD.csv` with today's date.
+
+CSV columns match the table: Asset Tag, Recorded Location, Status, Last Confirmed (ISO timestamp), Last Tech, Confirmations, Mismatches.
+
+---
+
+## Common report queries
+
+**Devices overdue for confirmation (annual audit)**
+Set *Not seen in* → **365 days**. Export the result as the list of assets requiring a physical walkdown before the audit.
+
+**Devices with stale locations**
+Set *Status* → **Mismatch**. These assets were found somewhere other than their recorded location — their CMDB record may need updating.
+
+**Coverage check for a specific floor**
+Set *Location* → the floor node. Review the Status column to see which rooms have well-confirmed assets and which have gaps.
+
+**Assets a specific tech has confirmed**
+Set *Tech* → the team member's name. Useful for verifying field work coverage during a scheduled sweep.

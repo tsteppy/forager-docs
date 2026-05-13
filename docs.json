@@ -39,7 +39,8 @@
         "group": "Getting Started",
         "pages": [
           "getting-started/introduction",
-          "getting-started/onboarding-checklist"
+          "getting-started/onboarding-checklist",
+          "getting-started/glossary"
         ]
       },
       {
@@ -55,6 +56,7 @@
         "pages": [
           "dashboard/floor-plan",
           "dashboard/team",
+          "dashboard/reports",
           "dashboard/webhook-settings"
         ]
       },

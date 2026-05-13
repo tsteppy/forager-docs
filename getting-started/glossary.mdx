@@ -1,0 +1,66 @@
+---
+title: "Glossary"
+description: "Key terms used throughout Forager and this documentation"
+---
+
+## Asset
+
+A physical device tracked in Forager — typically a piece of IT equipment with a barcode label. Each asset has an **asset tag** (the barcode value) and a **recorded location** (where the CMDB says it should be).
+
+## Asset Tag
+
+The unique identifier printed on an asset's barcode label. Forager uses this value to match a scanned barcode to a record in the system and to write back to the CMDB.
+
+## Attestation
+
+A record created each time a tech scans an asset. Every attestation captures: the asset tag, the tech's current location (determined by RF fingerprint), the tech's identity, a timestamp, and the result type (match, mismatch, or new asset).
+
+Attestations are the audit artifact — they are immutable records of when each device was physically observed and where.
+
+## Confirmation
+
+A successful attestation where the asset's recorded location matches the tech's current location. Also called a **match**. Confirmations update the asset's *Last Confirmed* date and count toward compliance coverage.
+
+## Coverage
+
+A measure of how well a location has been surveyed. Rooms with more RF captures from varied positions have higher coverage and produce more accurate location classification. Coverage is visible in the app's Coverage screen.
+
+## Fingerprint
+
+The RF signal pattern captured at a specific location during a survey. A fingerprint is built from Wi-Fi access point signal strengths and BLE beacon readings. The app matches a tech's current signal environment against stored fingerprints to determine which room they are in.
+
+## Location Node
+
+A named point in the physical location hierarchy — a building, floor, wing, room, or any other level. Location nodes form a tree: a building contains floors, floors contain rooms. Assets and survey fingerprints are both associated with location nodes.
+
+## Match
+
+See **Confirmation**.
+
+## Mismatch
+
+An attestation where the tech's current location (by RF fingerprint) does not match the asset's recorded location. Forager alerts the tech and asks whether to update the asset's location. The result is recorded as either *mismatch_confirmed* (location updated) or *mismatch_dismissed* (tech chose not to update).
+
+A mismatch indicates that either the asset has been moved, or the asset's CMDB record is out of date.
+
+## Never Confirmed
+
+An asset status indicating that the asset exists in Forager's registry but has never received a successful match attestation. The asset may have been imported from a CMDB or added during an initial new-asset scan, but no tech has yet performed a clean confirmation for it.
+
+Never-confirmed assets are not necessarily lost — they may simply not have been encountered during normal field work yet. A high count of never-confirmed assets in an area typically means that area hasn't been swept.
+
+## Presence Confirmation
+
+The core Forager workflow. As field techs move through a facility doing normal IT work, they scan device barcodes. The app compares each scanned device's recorded location to where the tech currently is. Matches are silently recorded; mismatches trigger an alert. Compliance attestation accumulates continuously without dedicated audit walks.
+
+## Recorded Location
+
+The location currently on file for an asset — what the system believes to be the asset's home. This is the value written to the CMDB and displayed in reports. It updates when a mismatch is confirmed.
+
+## Survey
+
+The process of teaching Forager what each room's RF environment looks like. A tech walks each room once, either tapping their position on a floor plan or naming the location, and the app captures several RF scans. The resulting fingerprint is used to classify the tech's location during future presence confirmation sessions.
+
+## Webhook
+
+An HTTP callback that Forager sends to an external system (such as ServiceNow) when an attestation is recorded. Webhooks enable real-time CMDB updates without manual data entry. Configured under Dashboard → Settings.
