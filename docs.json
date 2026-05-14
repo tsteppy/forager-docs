@@ -59,6 +59,9 @@
         "pages": [
           "field-tech/scanning-assets",
           "field-tech/understanding-confirmations",
+          "field-tech/survey-mode",
+          "field-tech/coverage",
+          "field-tech/attestation-log",
           "field-tech/device-hunt"
         ]
       },

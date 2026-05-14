@@ -7,27 +7,29 @@ Webhooks let Forager automatically notify an external system every time an attes
 
 ## Where to find it
 
-Dashboard → **Settings** → **CMDB Webhooks** (admin access required).
+Webhook configuration is in the **Forager Android app**, not the web dashboard. You must be logged in as an admin.
+
+From the home screen: tap your profile avatar → **Admin** → expand the **Webhooks** section.
 
 ## Adding a webhook
 
 <Steps>
-  <Step title="Click Add webhook">
-    On the Settings page, click **Add webhook**.
+  <Step title="Open the Webhooks section">
+    In the Admin screen, tap the **Webhooks** section header to expand it.
+  </Step>
+  <Step title="Tap Add Webhook">
+    Tap the **Add Webhook** button at the bottom of the section.
   </Step>
   <Step title="Enter the endpoint details">
     | Field | What to enter |
     |---|---|
     | **Name** | A label for your own reference, e.g. `ServiceNow Production` |
-    | **Endpoint URL** | The full URL Forager will POST to on every attestation |
-    | **Auth Header Name** | The HTTP header used for authentication, e.g. `Authorization` |
-    | **Auth Header Value** | The credential value, e.g. `Basic abc123...` or `Bearer token...` |
+    | **URL** | The full HTTPS URL Forager will POST to on every attestation |
+    | **Secret Header** | The HTTP header used for authentication, e.g. `X-ServiceNow-Token` or `Authorization` |
+    | **Secret Value** | The credential value, e.g. `Basic abc123...` or `Bearer token...` |
   </Step>
-  <Step title="Customize the payload (optional)">
-    The default payload template works for most setups. If your endpoint expects a different JSON structure, edit the template using the available variables listed below the editor.
-  </Step>
-  <Step title="Enable and save">
-    Check **Enable this webhook** and click **Add webhook**. The webhook is live immediately.
+  <Step title="Tap Add">
+    Tap **Add**. The webhook is active immediately. Every attestation written from this point forward will trigger a POST to the configured URL.
   </Step>
 </Steps>
 
@@ -44,7 +46,7 @@ Dashboard → **Settings** → **CMDB Webhooks** (admin access required).
 
 ## Disabling a webhook temporarily
 
-Click **Disable** on the webhook card. Attestations continue to be recorded in Forager — they are not queued for later delivery. Re-enable when ready; only new attestations from that point forward will be sent.
+Toggle the switch on the webhook card to off. Attestations continue to be recorded in Forager — they are not queued for later delivery. Re-enable when ready; only new attestations from that point forward will be sent.
 
 ## Detailed setup guides
 

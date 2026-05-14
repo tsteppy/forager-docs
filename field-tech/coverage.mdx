@@ -1,0 +1,44 @@
+---
+title: "Coverage"
+description: "How to read coverage quality and keep your survey data fresh"
+---
+
+The Coverage screen shows the survey quality for every room in your location hierarchy. Use it to identify rooms that need surveying before starting attestation work, and to find rooms where the fingerprint has gone stale.
+
+## Opening Coverage
+
+From the Forager home screen, tap **Coverage**.
+
+Use the floor selector to switch between floors. Each room on the selected floor appears in the list with a quality indicator.
+
+## Quality indicators
+
+| Color | Meaning | Action |
+|---|---|---|
+| **Green** | Well surveyed — strong fingerprint, high confidence location matching | None required |
+| **Yellow** | Thin coverage — few samples captured, lower confidence | Re-survey when convenient |
+| **Gray** | Not yet surveyed | Survey before using this room for attestation |
+
+A room cannot be used for reliable presence confirmation until it shows green. Scanning in a gray or yellow room will still work, but the app may misidentify your location.
+
+## Stale coverage banner
+
+If any rooms have not been surveyed in over 90 days, a banner appears at the top of the coverage screen. Tap the banner to open a refresh sheet listing which rooms need attention. You can navigate directly to Survey Mode for any of those rooms from the sheet.
+
+## Refreshing a room
+
+To re-survey a specific room:
+
+1. Tap the room row in the coverage list
+2. Tap **Re-survey this room**
+3. Walk into the room and follow the survey capture steps
+
+Re-surveying overwrites the existing fingerprint. Do it when the room's equipment layout or network configuration has changed, when the app is consistently misidentifying the room, or when the stale banner flags it.
+
+## Coverage by floor
+
+Coverage is displayed per floor. A floor with all-green rooms is ready for full attestation operation. A floor with gray rooms means some areas have no location data — techs scanning assets there may not get accurate room attribution.
+
+<Note>
+  Coverage reflects your most recent survey. If you have surveyed a room recently but it still shows yellow, it may need more capture passes. Run one more capture from a different position in the room to supplement the existing fingerprint.
+</Note>

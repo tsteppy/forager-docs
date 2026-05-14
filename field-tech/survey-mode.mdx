@@ -1,0 +1,69 @@
+---
+title: "Survey Mode"
+description: "How to survey rooms so the app can determine where you are"
+---
+
+Survey Mode is how you teach Forager what each room looks like on the Wi-Fi and Bluetooth spectrum. Without a survey, the app cannot determine your current location — and without your location, presence confirmation does not work.
+
+You only need to survey each room once. Re-survey if the room's layout or network equipment changes significantly, or if the app consistently misidentifies the room.
+
+## What survey captures
+
+When you run a survey capture, the app records 4–6 samples of every Wi-Fi access point and Bluetooth device visible from that spot. It also records barometric pressure (for floor estimation) and magnetic field strength (a stable per-room characteristic based on local metal and structural features). These signals together form a fingerprint unique to that room.
+
+## Running a survey
+
+<Steps>
+  <Step title="Open Survey Mode">
+    From the Forager home screen, tap **Survey Mode**.
+  </Step>
+  <Step title="Select the floor">
+    Use the floor selector at the top to choose which floor you are on. Rooms are sorted by urgency — unsurveyed rooms appear first, followed by rooms with stale fingerprints.
+  </Step>
+  <Step title="Enter the room">
+    Physically walk into the room you want to survey. Stand near the center, away from doorways. Tap the room in the list.
+  </Step>
+  <Step title="Tap Capture">
+    Tap the **Capture** button. The quality ring fills as each sample is taken. The full capture takes approximately 30 seconds. Stay still — walking or moving between rooms during capture degrades the fingerprint.
+  </Step>
+  <Step title="Repeat for each room on the floor">
+    After the capture completes, tap **Back** to return to the room list and move to the next room. Work your way through every room on the floor.
+  </Step>
+</Steps>
+
+## Reading the quality ring
+
+The ring on the capture screen fills one segment per completed sample. A full ring (all four segments filled) indicates a strong fingerprint. A partial ring is still usable but may result in lower confidence during location classification.
+
+If the ring stops filling, the app may be having trouble scanning signals. Check that Wi-Fi and Bluetooth are enabled on your device.
+
+## Adding a room during survey
+
+If a room does not appear in the list, tap **Add New Room**, enter a name and level type (e.g. "Room", "Zone"), and it will be created under the selected floor. You can then survey it immediately.
+
+## Pinning rooms to the floor plan
+
+If a floor plan image has been uploaded by your admin, a floor plan view appears at the top of the Survey Mode screen. After completing a capture for a room, you can tap the floor plan to place a pin for that room's location. This pin is used for visual navigation during Device Hunt and mismatch display.
+
+If no floor plan is uploaded, survey still works — rooms are tracked by name and location hierarchy only.
+
+## Survey quality indicators
+
+After surveying, open **Coverage** to see the quality of each room's fingerprint.
+
+| Indicator | Meaning |
+|---|---|
+| Green | Well surveyed — ready for attestation |
+| Yellow | Thin — fewer than ideal samples; consider re-surveying |
+| Gray | Not yet surveyed |
+
+<Note>
+  The first survey of a new room creates its fingerprint. Subsequent surveys on the same room refresh it. If room conditions have not changed, you do not need to re-survey frequently — once per quarter is typical unless equipment or layout changes.
+</Note>
+
+## Tips for accurate surveys
+
+- Survey each room from the middle of the room, not from a doorway or hallway
+- Survey at a typical working time — signal density can vary if nearby equipment is off overnight
+- If two adjacent rooms are frequently confused by the app, re-survey both from the center of each room with the door closed
+- Rooms that share a wall with high-density networking equipment benefit from extra captures
