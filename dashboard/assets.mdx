@@ -1,0 +1,106 @@
+---
+title: "Assets"
+description: "Bulk-import your asset roster from a CMDB export and download the current roster as CSV"
+---
+
+## Overview
+
+The Assets page lets admins manage the Forager asset roster in bulk. Use it to:
+
+- **Import from CMDB** — upload a CSV exported from ServiceNow or another CMDB to seed or update the asset list. No manual entry required.
+- **Export asset roster** — download the full roster as CSV, including both the CMDB-recorded location and Forager's confirmed location side by side.
+
+Assets is accessed from the dashboard sidebar under **Assets** and is available to admins only.
+
+---
+
+## Importing from CMDB
+
+### Prepare your CSV
+
+Download the import template from the Assets page ("Download template" link) and use it as a reference. The template includes three example rows with correct column names and formatting.
+
+**Required column:**
+
+| Column | Notes |
+|---|---|
+| `asset_tag` | Primary identifier — must be non-empty. Used to match existing records on re-import. |
+
+**Optional columns:**
+
+| Column | Notes |
+|---|---|
+| `name` | Device name or model (e.g. "Dell OptiPlex 7090") |
+| `description` | Free-text description |
+| `serial_number` | Physical serial number |
+| `cmdb_id` | The CMDB system's internal record ID (e.g. ServiceNow sys_id) |
+| `cmdb_location` | The CMDB's recorded location string — stored for reference only, never used by the Forager app |
+
+Column headers are matched case-insensitively. Extra columns in your export are ignored.
+
+**Limits:** Maximum 10,000 rows per file. Files over this limit are rejected before any rows are processed.
+
+### Upload the file
+
+1. In the dashboard, go to **Assets**
+2. Drag your CSV onto the drop zone, or click the zone to browse for a file
+3. Forager processes the file server-side — a spinner indicates upload in progress
+4. When complete, a summary appears: **N imported · N updated · N skipped**
+
+### What "imported" vs "updated" means
+
+- **Imported** — new assets added to the roster (no prior record with that asset tag)
+- **Updated** — existing assets whose name, description, serial number, CMDB ID, or CMDB location were refreshed
+- **Skipped** — rows with a blank `asset_tag` after trimming whitespace (not counted as errors)
+
+Re-importing the same file is safe. Forager upserts on `asset_tag` — existing records are updated, not duplicated.
+
+### What import never touches
+
+Importing from CMDB only writes CMDB-sourced fields. Forager's confirmed location data is never affected:
+
+- `last_seen_location` — the location a tech confirmed when scanning the asset — is never overwritten by import
+- `last_seen_at` — the timestamp of the most recent confirmation — is never overwritten by import
+
+This means you can re-import an updated CMDB export at any time without losing attestation history.
+
+---
+
+## Exporting the asset roster
+
+Click **Download CSV** to download the full asset roster. The file is named `forager-assets-YYYY-MM-DD.csv` with today's date.
+
+### Export columns
+
+| Column | Description |
+|---|---|
+| `asset_tag` | Asset identifier |
+| `name` | Device name |
+| `description` | Free-text description |
+| `serial_number` | Serial number |
+| `cmdb_id` | CMDB internal record ID |
+| `cmdb_location` | Location string from the most recent CMDB import |
+| `last_seen_location` | Location confirmed by a Forager field tech via presence attestation |
+| `last_seen_at` | Timestamp of the most recent successful confirmation |
+
+### Understanding the two location columns
+
+The export includes both `cmdb_location` and `last_seen_location` so you can compare the CMDB-recorded location against Forager's confirmed location:
+
+- **`cmdb_location`** is what your CMDB says about where the device should be. It is set at import time and never modified by Forager's field workflows.
+- **`last_seen_location`** is where a Forager tech actually confirmed the device during normal field work. It updates every time a tech successfully attests the device's location.
+
+A mismatch between these two columns is a signal that a CMDB record may be stale — the device was confirmed in a different location than the CMDB currently shows.
+
+---
+
+## Error reference
+
+| Error | Cause | Fix |
+|---|---|---|
+| "Please upload a .csv file." | A non-CSV file was selected | Select a file ending in `.csv` |
+| "Missing required column: asset_tag" | The CSV has no `asset_tag` column header | Add the column (download the template for reference) |
+| "File exceeds maximum of 10,000 rows" | The CSV has more than 10,000 data rows | Split into multiple files under the limit |
+| "Session expired. Please log in again." | Your session timed out during upload | Refresh the page, log in again, and re-upload |
+
+If individual rows have errors (for example, a database constraint violation), they appear in an expandable list below the summary banner. Other rows in the file are still processed.

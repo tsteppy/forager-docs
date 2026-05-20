@@ -86,8 +86,21 @@ Follow this checklist in order. Each step unlocks the next.
 
 ## Phase 5 — CMDB integration (optional)
 
-If your organization uses ServiceNow or another CMDB, configure a webhook to push every attestation automatically.
+<Steps>
+  <Step title="Seed your asset roster from CMDB">
+    Rather than adding assets one by one, export a CSV from your CMDB (ServiceNow or equivalent) and upload it from the dashboard **Assets** page. Forager will create every asset in the file in seconds.
 
-<Card title="ServiceNow Integration Guide" icon="plug" href="/integrations/servicenow-scripted-rest-api">
-  Connect Forager to ServiceNow to push location updates to CI records automatically.
-</Card>
+    The import accepts `asset_tag`, `name`, `description`, `serial_number`, `cmdb_id`, and `cmdb_location`. Only `asset_tag` is required. Re-importing is safe — existing records are updated, confirmed location data is never overwritten.
+
+    <Card title="Assets — Import & Export" icon="table" href="/dashboard/assets">
+      Learn how to bulk-import from CMDB and export the current roster as CSV.
+    </Card>
+  </Step>
+  <Step title="Configure a webhook for ongoing sync (optional)">
+    To push every attestation back to ServiceNow automatically, configure a webhook from the dashboard **Settings → Webhooks** page.
+
+    <Card title="ServiceNow Integration Guide" icon="plug" href="/integrations/servicenow-scripted-rest-api">
+      Connect Forager to ServiceNow to push location updates to CI records automatically.
+    </Card>
+  </Step>
+</Steps>

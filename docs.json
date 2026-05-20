@@ -62,6 +62,7 @@
           "field-tech/survey-mode",
           "field-tech/coverage",
           "field-tech/attestation-log",
+          "field-tech/signal-diagnostic",
           "field-tech/device-hunt"
         ]
       },
@@ -71,6 +72,7 @@
           "dashboard/floor-plan",
           "dashboard/team",
           "dashboard/reports",
+          "dashboard/assets",
           "dashboard/webhook-settings"
         ]
       },
