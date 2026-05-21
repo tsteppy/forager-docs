@@ -38,7 +38,7 @@
         "items": [
           {
             "label": "Email Support",
-            "url": "mailto:support@hiveriselabs.com"
+            "href": "mailto:support@hiveriselabs.com"
           }
         ]
       }
