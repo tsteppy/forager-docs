@@ -90,6 +90,12 @@
           "troubleshooting/floor-plan",
           "troubleshooting/webhooks"
         ]
+      },
+      {
+        "group": "Platform Admin",
+        "pages": [
+          "admin/provisioning-companies"
+        ]
       }
     ]
   }
