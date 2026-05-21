@@ -1,41 +1,59 @@
 ---
 title: "Managing Your Team"
-description: "How to invite technicians, manage roles, and remove users"
+description: "How to invite technicians, change roles, and remove users from your company"
 ---
 
-The Team page in the dashboard shows all members of your company account and lets admins manage access.
+The Team page in the dashboard is the central place for admins to manage who has access to your Forager company account.
 
 ## Roles
 
 | Role | Access |
 |---|---|
-| **Admin** | Full dashboard access, can invite/remove members, can configure webhooks |
-| **Tech** | Android app only, records attestations, no dashboard access |
+| **Admin** | Full dashboard access — can invite members, change roles, remove users, configure webhooks, and import/export assets |
+| **User** | Android app only — records attestations and runs surveys. No dashboard access. |
 
 ## Inviting a team member
 
+Only admins can send invites. The invite is sent by email and the new member downloads the Forager Android app directly from the link.
+
 <Steps>
   <Step title="Open the Team page">
-    In the dashboard, click **Team** in the left navigation.
+    Log into the dashboard at [dashboard.hiveriselabs.com](https://dashboard.hiveriselabs.com) and click **Team** in the left navigation.
   </Step>
-  <Step title="Send an invite">
-    Click **Invite member**, enter their email address, and select their role. Click **Send invite**.
-
-    They will receive an email with a link to set their password and download the Forager app if they are a tech.
+  <Step title="Enter the technician's email">
+    In the **Invite Team Member** card, enter their email address and click **Send Invite**. The invite is sent immediately.
   </Step>
-  <Step title="Confirm they appear in the list">
-    Invited members appear immediately in the team list with a **Pending** badge until they accept the invite and log in.
+  <Step title="Technician accepts the invite">
+    The technician receives an email with a secure link. When they click it:
+    1. Their account is created and verified automatically — no password required at this step.
+    2. They land on a welcome page with a **Get it on Google Play** button.
+    3. They download the Forager app and sign in with the email address they received the invite on.
+  </Step>
+  <Step title="Technician appears in your team list">
+    Once they have signed in, they appear in the Team member list. Their role is set to **User** by default.
   </Step>
 </Steps>
 
+<Note>
+  New technicians do not need to set a password to start using the app. If they ever need one (e.g., to log in on a new device after the invite link expires), they can use the **Forgot Password** flow on the login screen.
+</Note>
+
+## Changing a member's role
+
+Click the role badge on any team member's row to toggle between **Admin** and **User**. The change takes effect immediately.
+
+You cannot change your own role. If you need to demote yourself, ask another admin to do it.
+
 ## Removing a member
 
-Click the menu next to a team member's name and select **Remove**. Their account is deactivated immediately. Any attestations they previously recorded remain in the system.
+Click the trash icon on a member's row. A confirmation prompt will appear. Confirm to remove them — they lose access to the company account immediately.
+
+Any attestations they previously recorded remain in the system and are not affected.
 
 <Warning>
-  Removing a member cannot be undone from the dashboard. Contact Forager support if you need to reinstate a removed user.
+  Removing a member cannot be undone from the dashboard. Contact support@hiveriselabs.com if you need to reinstate a removed user.
 </Warning>
 
 ## Last active
 
-The **Last Active** column shows when each member last used the Forager app or dashboard. Use this to identify inactive accounts that should be removed.
+The **Last Active** column shows when each member last recorded an attestation in the Forager app. Use this to identify inactive accounts.
