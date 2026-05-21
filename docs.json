@@ -57,7 +57,8 @@
       {
         "group": "Field Tech Guide",
         "pages": [
-          "field-tech/scanning-assets",
+          "field-tech/home-screen",
+        "field-tech/scanning-assets",
           "field-tech/understanding-confirmations",
           "field-tech/survey-mode",
           "field-tech/coverage",

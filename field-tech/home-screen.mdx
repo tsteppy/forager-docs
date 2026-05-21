@@ -1,0 +1,123 @@
+---
+title: "Home Screen"
+description: "A guide to every element on the Forager Dashboard home screen"
+---
+
+The home screen is your starting point for all field work. Everything you need — scanning, surveying, reviewing records, and navigating to assets — is one tap away from here.
+
+## Header
+
+**Forager Dashboard** — The app title. Always visible at the top to confirm you are on the home screen.
+
+### Status icons
+
+The row of icons in the top-right corner of the header shows the live state of your device's radios and data connection. From left to right:
+
+| Icon | Name | What it means |
+|---|---|---|
+| Gold pin | Location | GPS is active. Solid gold means a location fix is confirmed. |
+| Bluetooth symbol | Bluetooth | The BLE radio is on and scanning for nearby signals. |
+| Circular target | RF Scanner | The app is actively reading Wi-Fi and Bluetooth signals to determine your room. |
+| Up/down arrows | Sync | Data is syncing to the Forager server. Animated when a sync is in progress. |
+| Cloud | Upload | Attestation records are queued or uploading. Clears once all records are sent. |
+| Orange circle | Your profile | Tap to view your account, display name, and sign-out option. |
+
+All icons should be active before you begin scanning assets. If Bluetooth or Location appears inactive, check that both are enabled in your phone's Settings.
+
+---
+
+## Location bar
+
+**📍 Floor 1 (locating room…)**
+
+Shows your current detected location. The floor name updates as the app reads RF signals from your surroundings.
+
+**"Locating room…"** means the app is still narrowing down which room you are in. Wait a moment before scanning assets — the confirmation is more accurate once a specific room is identified. When the room is confirmed, the room name replaces this text.
+
+<Note>
+  If the location bar stays on "locating room…" for more than 30 seconds, check that Wi-Fi and Bluetooth are both enabled. The app needs both radios to determine your room.
+</Note>
+
+---
+
+## Quick Actions
+
+### Survey Mode
+
+Captures RF signal fingerprints for a room. Used during initial setup and any time a room's physical environment changes significantly (new walls, major furniture rearrangement, access point changes).
+
+Select your floor and room, then tap **Capture**. Hold still for about 30 seconds while the app records signals. Repeat for each room on the floor.
+
+<Card title="Survey Mode" icon="map" href="/field-tech/survey-mode">
+  Full guide: running a survey, how many captures to take, and when to re-survey.
+</Card>
+
+### Coverage
+
+Shows a color-coded view of how thoroughly each room has been surveyed:
+
+| Color | Meaning |
+|---|---|
+| **Green** | Well surveyed — ready for attestation |
+| **Yellow** | Thin coverage — consider re-surveying |
+| **Gray** | Not yet surveyed |
+
+Check Coverage after a survey session to confirm all rooms are green before starting attestation work.
+
+<Card title="Coverage" icon="chart-bar" href="/field-tech/coverage">
+  Full guide: reading the coverage map and improving thin rooms.
+</Card>
+
+### Presence Confirmation
+
+The main daily workflow. Opens active scanning mode where the app detects your current room and records an attestation each time you scan an asset barcode.
+
+The app compares the asset's recorded location to the room you are standing in and marks it as confirmed or flagged. This is where field techs spend most of their time.
+
+<Card title="Scanning Assets" icon="barcode" href="/field-tech/scanning-assets">
+  Full guide: the attestation workflow, handling mismatches, and tips for accurate scans.
+</Card>
+
+### Attestation Log
+
+A history of every asset scan you have recorded. Each entry shows the asset tag, room, timestamp, and whether it was a match or a mismatch.
+
+Use this to review your work, verify a specific scan was recorded, or investigate a flagged discrepancy before reporting it.
+
+<Card title="Attestation Log" icon="list" href="/field-tech/attestation-log">
+  Full guide: filtering the log, understanding match and mismatch records.
+</Card>
+
+### Signal Diagnostic
+
+A real-time view of the raw Wi-Fi and Bluetooth signals the app is detecting. Useful for troubleshooting room detection issues or verifying the radio environment is healthy before a survey.
+
+Can export a signal snapshot as a file — used when contacting support about a location accuracy problem.
+
+<Card title="Signal Diagnostic" icon="signal" href="/field-tech/signal-diagnostic">
+  Full guide: reading the diagnostic view and exporting a snapshot for support.
+</Card>
+
+### Find Device
+
+Navigates you to an asset's last confirmed location. Enter or scan an asset tag and the app shows the floor plan with the asset's last known room highlighted. The indicator updates as you move through the building.
+
+Use this when a device cannot be found in its expected location.
+
+<Card title="Device Hunt" icon="magnifying-glass" href="/field-tech/device-hunt">
+  Full guide: starting a device hunt, reading the floor plan, and what to do if the asset is not there.
+</Card>
+
+---
+
+## Footer links
+
+**Help & Docs** — Opens the Forager documentation site in your browser.
+
+**Contact Support** — Composes an email to the Hiverise Labs support team.
+
+---
+
+## Bottom navigation
+
+**Home** (stack icon) — Returns you to this screen from anywhere in the app.
