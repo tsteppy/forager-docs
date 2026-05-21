@@ -1,0 +1,265 @@
+---
+title: "Pilot Onboarding Guide"
+description: "End-to-end runbook for Hiverise Labs staff: from new customer to first confirmed attestation"
+---
+
+<Warning>
+  This guide is for **Hiverise Labs staff only**. It describes internal admin workflows not available to customers.
+</Warning>
+
+## Overview
+
+A Forager pilot runs from first contact through a customer's first full attestation cycle — typically 2–4 weeks. Your job as the onboarding admin is to provision the account, coach the customer's admin through setup, and verify each phase completes before handing off.
+
+This guide is your runbook. Follow it in order. Each phase has a verification step — do not move on until it passes.
+
+---
+
+## Phase 0 — Pre-engagement checklist
+
+Collect these from the customer before you touch the admin dashboard.
+
+| Item | Notes |
+|---|---|
+| **Customer organization name** | Exactly as it should appear in the system |
+| **Admin's name and email** | The person who will manage the Forager account |
+| **Pilot scope** | Which building(s), floor(s), and approximate room count |
+| **Asset source** | Do they have a CMDB (ServiceNow)? CSV export? Manual entry? |
+| **Tech device count** | How many Android devices will field techs use |
+| **Seat limit needed** | Admin + number of field techs (default 6; adjust for their team size) |
+| **Floor plan files** | JPEG or PNG preferred. PDFs work but lose interactive pin support. |
+| **Timeline** | Pilot start date and expected completion date |
+
+<Note>
+  For pilots, seat limit = 1 admin + number of field techs participating. You can raise it later directly in the database if needed. Default of 6 covers most small pilots.
+</Note>
+
+---
+
+## Phase 1 — Provision the company
+
+**Your actions — customer is not involved yet.**
+
+<Steps>
+  <Step title="Log into the platform admin dashboard">
+    Go to [dashboard.hiveriselabs.com/admin](https://dashboard.hiveriselabs.com/admin). You must be signed in with your Hiverise Labs admin account (`SUPER_ADMIN_EMAIL`).
+  </Step>
+  <Step title="Open the Add Company form">
+    Click **Add Company**. The form expands inline.
+  </Step>
+  <Step title="Fill in the form">
+    - **Company name**: the customer's organization name
+    - **Admin email**: the IT admin's email you collected in Phase 0
+    - **Seat limit**: admin + field techs (e.g., 1 admin + 4 techs = 5 seats)
+    - **Notes**: paste in your pre-engagement notes — contract type, pilot scope, contact name, start date. This is internal only.
+  </Step>
+  <Step title="Submit and confirm">
+    Click **Create Company & Send Invite**. You should see a green banner: *"[Company name] created. Invite sent to [email]."*
+
+    If you see an error instead:
+    - **Email already has an account**: the admin already exists in Supabase auth — contact support to resolve
+    - **Company name conflict**: choose a more specific name (e.g., include city or department)
+  </Step>
+</Steps>
+
+**Verify before continuing:**
+
+The invite email is sent immediately. Confirm you see the success banner. If the banner is absent or shows an error, do not proceed — the company row may or may not have been created.
+
+---
+
+## Phase 2 — Customer admin accepts the invite
+
+**Their action, your coaching.**
+
+Send the customer admin the following message (adapt as needed):
+
+> *"I've set up your Forager account. Look for an email with the subject "You have been invited" — it may take a few minutes to arrive. Click the link inside and you'll be taken directly to a welcome page confirming your account is active. No password setup is required at this step.*
+>
+> *After that, go to [dashboard.hiveriselabs.com](https://dashboard.hiveriselabs.com) and sign in with this email address. You'll have full admin access."*
+
+**What to watch for:**
+
+- If they don't receive the email within 5 minutes, have them check spam. The sender is Supabase (no-reply@mail.app.supabase.io).
+- If the invite link shows an error, the link may have expired (valid for 24 hours). You can re-invite by provisioning a new invite — this does not create a duplicate company, but currently requires a manual Supabase re-invite. Contact support.
+- Once they accept, their profile is automatically seeded with `role: admin` for their company.
+
+**Verify before continuing:**
+
+Ask the admin to confirm they can log into [dashboard.hiveriselabs.com](https://dashboard.hiveriselabs.com) and see the **Team** page. If they land on an error or see no company data, the profile was not seeded — escalate.
+
+---
+
+## Phase 3 — Team setup
+
+**Customer admin's actions. Coach them through this call or async.**
+
+<Steps>
+  <Step title="Admin invites field techs">
+    In the dashboard → **Team** → **Invite Team Member** card. Enter each tech's email and send. Each tech receives an invite email.
+
+    Techs do not need to set a password. When they click the link, they land on a welcome page with a **Get it on Google Play** button. They download the app and sign in with their invite email.
+
+    Remind the admin: invites expire after 24 hours. If a tech doesn't accept in time, the admin can re-send from the Team page.
+  </Step>
+  <Step title="Confirm techs appear in the team list">
+    After a tech accepts and signs in, they appear in the Team member list with role **User**. The admin does not need to do anything further — techs are ready to use the app.
+  </Step>
+</Steps>
+
+**Verify before continuing:**
+
+At least one field tech account is confirmed — they appear in the Team list and can sign in to the Forager app.
+
+---
+
+## Phase 4 — Location hierarchy
+
+**Customer admin's actions in the Forager app.**
+
+Walk the admin through this if they are unfamiliar with the app. The hierarchy must be built top-down before survey can begin.
+
+<Steps>
+  <Step title="Build the location tree">
+    In the Forager app → **Manage Locations**. Add nodes in this order:
+    1. Campus or site (optional — skip for single-building pilots)
+    2. Building
+    3. Floor (one node per floor being piloted)
+    4. Room (one node per room that will be tracked)
+
+    For a typical pilot, you are scoping to **1–2 floors**. Keep it small — a full floor of 15 rooms is a good pilot scope.
+  </Step>
+  <Step title="Upload floor plans">
+    For each floor node, upload a JPEG or PNG of the floor plan. This enables the visual map view in the dashboard and is strongly recommended for pilots — it makes the demo much more compelling.
+
+    After uploading, the admin places each room's pin on the floor plan image. This takes about 5–10 minutes per floor and only needs to be done once.
+  </Step>
+</Steps>
+
+**Verify before continuing:**
+
+Every room in the pilot scope has a node in the location tree. Floor plan images are uploaded and room pins are placed.
+
+---
+
+## Phase 5 — Survey
+
+**Field techs run this. Customer admin coordinates.**
+
+Survey is the most time-sensitive phase and the most common place pilots stall. Set expectations clearly: a tech needs to physically stand in each room for about 30 seconds. A 10–15 room floor takes 20–30 minutes total.
+
+<Steps>
+  <Step title="Brief the tech team">
+    Share these instructions with the field techs before they start:
+    - One person with the app is enough per room — they do not need to stay long
+    - The app must have location permission and Bluetooth enabled
+    - They move room to room, one capture per room
+    - They do not need to scan any assets during survey — survey and attestation are separate steps
+  </Step>
+  <Step title="Tech runs survey for each room">
+    In the app → **Survey Mode**:
+    1. Select the floor
+    2. Select the room
+    3. Tap **Capture** and hold still for ~30 seconds
+    4. Wait for the capture to complete, then move to the next room
+  </Step>
+  <Step title="Check coverage quality">
+    In the app → **Coverage**. Each room shows:
+    - **Green** — well surveyed, ready for attestation
+    - **Yellow** — thin data, consider re-surveying
+    - **Gray** — not yet surveyed
+
+    All pilot rooms should be **green** before the first attestation run.
+  </Step>
+</Steps>
+
+**Verify before continuing:**
+
+All rooms in the pilot scope show green in Coverage. If any show yellow after a re-survey, they can proceed — yellow rooms still work but may have slightly lower confidence.
+
+---
+
+## Phase 6 — Asset seeding
+
+**Customer admin's actions in the dashboard.**
+
+Assets need to exist in Forager before techs can scan them. There are two paths:
+
+**Path A — CMDB import (preferred for pilots with an existing ServiceNow or CMDB)**
+
+In the dashboard → **Assets** → **Import CSV**. The customer exports a CSV from their CMDB with columns: `asset_tag`, `name`, `description`, `serial_number`, `cmdb_id`, `cmdb_location`. Only `asset_tag` is required.
+
+For the pilot, import only the assets in the rooms being surveyed — not their entire inventory. A focused set of 50–200 assets makes the pilot cleaner to validate.
+
+**Path B — Manual or small test set**
+
+If no CMDB is available, the customer can add assets manually in the dashboard, or you can prepare a small CSV with known asset tags for them to scan during validation.
+
+**Verify before continuing:**
+
+Assets appear in the dashboard Assets list. The customer can search for a specific asset tag and find it.
+
+---
+
+## Phase 7 — First attestation run
+
+**Field tech's action. This is the pilot validation moment.**
+
+<Steps>
+  <Step title="Tech enters a surveyed room">
+    The tech opens the Forager app and walks into one of the surveyed rooms. The app should automatically detect the room from the RF fingerprint.
+  </Step>
+  <Step title="Tech scans an asset barcode">
+    The tech scans the barcode of a known asset in that room. The app:
+    - Confirms the current room
+    - Looks up the asset's recorded location
+    - Records a confirmation (match) or flags a mismatch
+  </Step>
+  <Step title="Verify in the dashboard">
+    Log into [dashboard.hiveriselabs.com](https://dashboard.hiveriselabs.com) → **Floor Plan** → select the floor. The scanned room's pin should show the asset with a **green indicator** (confirmed within 7 days).
+
+    You can also go to **Reports** and filter by today's date to see the attestation record with tech name, asset, room, and timestamp.
+  </Step>
+</Steps>
+
+**Pilot is live when:** at least one attestation appears in the dashboard from a real scan in a real room.
+
+---
+
+## Pilot health checks
+
+After the first week of active use, review these with the customer admin:
+
+| Check | What to look for |
+|---|---|
+| **Coverage drift** | Any rooms turning yellow or gray since survey? Re-survey if the physical layout changed. |
+| **Mismatch rate** | A small number of mismatches is normal. A high rate suggests a room's survey needs a refresh or assets have physically moved. |
+| **Inactive techs** | Team page → Last Active column. Techs with no recent activity may not have completed setup. |
+| **Seat limit** | Team page shows member count vs. limit. If they need more seats, update the seat_limit directly in the database. |
+
+---
+
+## Common issues
+
+| Symptom | Likely cause | Fix |
+|---|---|---|
+| Admin never received invite email | Spam filter, or email typo during provisioning | Check spam; if typo, provision a new invite with correct email |
+| Admin accepted invite but has no company data in dashboard | Profile seeding failed | Check that they clicked the email link (not the Supabase dashboard) and try signing out and back in |
+| Tech accepted invite but app shows no company | Same profile seeding issue | Tech should sign out and sign back in |
+| Room not detected during attestation | Room was not surveyed, or survey was too brief | Re-survey the room with a longer capture |
+| Asset not found on scan | Asset tag not in the system | Check Assets list; import the missing asset |
+| Seat limit error when inviting a tech | Company is at capacity | Increase seat_limit in the database |
+
+---
+
+## Pilot success criteria
+
+A pilot is considered successful when:
+
+- [ ] All rooms in scope are green in Coverage
+- [ ] All pilot assets are loaded in the system
+- [ ] At least one full team (admin + field techs) has active accounts
+- [ ] Attestations appear in the dashboard from real scans
+- [ ] The customer admin can pull a report showing confirmed asset locations
+
+When all five are checked, the pilot is ready to convert to a production account. Seat limit can be raised and additional buildings onboarded following the same Phase 4–6 pattern.

@@ -94,6 +94,7 @@
       {
         "group": "Platform Admin",
         "pages": [
+          "admin/pilot-onboarding-guide",
           "admin/provisioning-companies"
         ]
       }
