@@ -64,7 +64,8 @@
           "field-tech/coverage",
           "field-tech/attestation-log",
           "field-tech/signal-diagnostic",
-          "field-tech/device-hunt"
+          "field-tech/device-hunt",
+          "field-tech/most-wanted"
         ]
       },
       {
@@ -96,7 +97,8 @@
         "group": "Platform Admin",
         "pages": [
           "admin/pilot-onboarding-guide",
-          "admin/provisioning-companies"
+          "admin/provisioning-companies",
+          "admin/sprint-management"
         ]
       }
     ]
