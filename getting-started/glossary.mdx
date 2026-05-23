@@ -57,6 +57,18 @@ The core Forager workflow. As field techs move through a facility doing normal I
 
 The location currently on file for an asset — what the system believes to be the asset's home. This is the value written to the CMDB and displayed in reports. It updates when a mismatch is confirmed.
 
+## Site
+
+A building (or equivalent top-level location node) used as the unit of access control in Forager. Techs are assigned to sites; a site assignment grants access to all assets on every floor and in every room inside that building.
+
+Which level of the location tree counts as a "site" is configured per company. The default is the building level — direct children of the root node.
+
+## Site Membership
+
+A tech's assignment to a specific site. Each membership grants the tech read and write access to all assets located under that site node. A tech can have memberships at multiple sites and can switch between them using the site picker on the home screen.
+
+Admins are not subject to site memberships — they see all assets across the entire company.
+
 ## Survey
 
 The process of teaching Forager what each room's RF environment looks like. A tech walks each room once, either tapping their position on a floor plan or naming the location, and the app captures several RF scans. The resulting fingerprint is used to classify the tech's location during future presence confirmation sessions.

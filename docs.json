@@ -73,6 +73,7 @@
         "pages": [
           "dashboard/floor-plan",
           "dashboard/team",
+          "dashboard/sites",
           "dashboard/reports",
           "dashboard/assets",
           "dashboard/webhook-settings"

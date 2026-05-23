@@ -1,0 +1,62 @@
+---
+title: "Managing Sites"
+description: "How to assign team members to specific buildings and control what each tech can see"
+---
+
+The Sites page lets admins control which buildings each technician can access. Techs assigned to a site can see and confirm assets at that location. Techs with no site assignments see nothing until an admin assigns them.
+
+Go to **Sites** in the left navigation. This page is visible to admins only.
+
+## How site access works
+
+Every technician in your company is either:
+
+- **Assigned to one or more sites** — they can see and confirm assets at those locations only
+- **Assigned to no sites** — they see an empty state in the app and cannot confirm anything until assigned
+- **An admin** — admins see everything regardless of site assignments
+
+"Sites" are the buildings (or equivalent top-level locations) in your location tree. All rooms and floors inside a building are automatically included when a tech is assigned to that building. You do not need to assign rooms individually.
+
+<Note>
+  If your company has a deeper location hierarchy (Region → Campus → Building), your Forager admin can configure which level counts as the site boundary. Contact support if the default building level doesn't match your structure.
+</Note>
+
+## Assigning a tech to a site
+
+<Steps>
+  <Step title="Open the Sites page">
+    Click **Sites** in the left navigation of the dashboard.
+  </Step>
+  <Step title="Find the building">
+    The page lists every building in your location tree. Each card shows the building name and the techs currently assigned to it.
+  </Step>
+  <Step title="Add a member">
+    In the building card, open the **Add member** dropdown and select a team member. They are added immediately — no confirmation required.
+
+    Only team members not already assigned to that building appear in the dropdown.
+  </Step>
+</Steps>
+
+## Removing a tech from a site
+
+Click the **×** button on a member's badge inside any building card. The removal takes effect immediately. The tech loses access to assets at that building on their next app sync.
+
+<Warning>
+  Removing a tech from all sites leaves them with no asset access. They will see an empty screen in the app directing them to contact you.
+</Warning>
+
+## Assigning multiple sites to one tech
+
+A tech can be assigned to any number of sites. Add them to each building the same way — one building card at a time. When a tech has multiple site assignments, a **site picker** appears in the app header so they can filter their view to a specific building.
+
+## What techs see in the app
+
+| Assignment | App experience |
+|---|---|
+| One site | App shows assets for that building. No site picker shown. |
+| Multiple sites | Site picker appears in the header. Tech can view all sites or filter to one. |
+| No sites | Empty screen with a message to contact their admin. Cannot confirm assets. |
+
+## Admins are not affected by site assignments
+
+Admins always see all assets across the entire company, regardless of site assignments. Site membership only applies to technician-role accounts.
