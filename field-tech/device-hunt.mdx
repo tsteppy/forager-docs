@@ -42,6 +42,24 @@ If you are on a different floor than the asset, the floor plan shows your curren
 
 If the floor has no floor plan uploaded, Device Hunt still works — the app shows the room name as text and updates your current room as a text label. Contact your admin to upload a floor plan for improved navigation.
 
+## How your position is tracked
+
+The green "You are here" pin does not use GPS. Instead, it uses the same RF fingerprint system that powers presence confirmation.
+
+Every 7 seconds the app reads the live Wi-Fi and Bluetooth signals around you and sends them to Forager's location engine. The engine compares that signal pattern against every surveyed room in your building and identifies the closest match — the room whose fingerprint looks most like what the radios are seeing right now. That matched room determines where the green pin appears on the floor plan.
+
+When you walk into a new room, the next 7-second cycle picks up the new signal environment and moves the pin accordingly.
+
+**Proximity is room-resolution, not step-resolution.** The pin jumps from room to room as you move — it does not glide smoothly between them. "Getting closer" means the app has classified you into a room nearer to the target on the floor plan.
+
+**The green pin only appears when you are on the same floor as the asset.** Floor detection uses your device's barometric pressure sensor. If you are on a different floor, the pin is hidden until you reach the correct floor.
+
+**Accuracy depends on survey quality.** A room with more survey captures has a tighter fingerprint and is recognized more reliably as you approach it. If the green pin seems to lag or jump to the wrong room, the area may need a re-survey.
+
+<Card title="Survey Mode" icon="map" href="/field-tech/survey-mode">
+  How to survey rooms and improve location accuracy.
+</Card>
+
 ## If the device is not in the indicated room
 
 If you reach the room and the device is not there, it may have been moved since the last confirmation. Check nearby rooms and scan the barcode when found. The new location will be recorded.
