@@ -1,17 +1,17 @@
 ---
 title: "Home Screen"
-description: "A guide to every element on the Forager Dashboard home screen"
+description: "A guide to every element on the Forager home screen"
 ---
 
-The home screen is your starting point for all field work. Everything you need — scanning, surveying, reviewing records, and navigating to assets — is one tap away from here.
+The home screen is your starting point for all field work. Every function — scanning, surveying, reviewing records, and navigating to assets — is one tap away from here.
 
 ## Header
 
-**Forager Dashboard** — The app title. Always visible at the top to confirm you are on the home screen.
+**Forager Dashboard** — The app title, always visible at the top.
 
 ### Status icons
 
-The row of icons in the top-right corner of the header shows the live state of your device's radios and data connection. From left to right:
+The row of icons in the top-right corner shows the live state of your device's radios and data connection. From left to right:
 
 | Icon | Name | What it means |
 |---|---|---|
@@ -20,7 +20,7 @@ The row of icons in the top-right corner of the header shows the live state of y
 | Circular target | RF Scanner | The app is actively reading Wi-Fi and Bluetooth signals to determine your room. |
 | Up/down arrows | Sync | Data is syncing to the Forager server. Animated when a sync is in progress. |
 | Cloud | Upload | Attestation records are queued or uploading. Clears once all records are sent. |
-| Orange circle | Your profile | Tap to view your account, display name, and sign-out option. |
+| Initials circle | Your profile | Tap to view your account, switch roles, or sign out. |
 
 All icons should be active before you begin scanning assets. If Bluetooth or Location appears inactive, check that both are enabled in your phone's Settings.
 
@@ -28,9 +28,9 @@ All icons should be active before you begin scanning assets. If Bluetooth or Loc
 
 ## Site picker
 
-If your admin has assigned you to more than one building, a **site picker** appears below the header. It shows the currently active site — tap it to open a dropdown and switch to a different building or select **All Sites** to see everything across all your locations at once.
+If your admin has assigned you to more than one building, a **site chip** appears below the header. It shows the currently active site — tap it to open a dropdown and switch to a different building or select **All Sites** to see everything across all your locations at once.
 
-When a site is selected, the Most Wanted queue filters to assets in that building. Your selection is saved and restored the next time you open the app.
+When a site is selected the chip appears highlighted. Your selection is saved and restored the next time you open the app.
 
 If you have only one site assignment, the site picker does not appear — your view is automatically scoped to that building.
 
@@ -40,25 +40,31 @@ If you have only one site assignment, the site picker does not appear — your v
 
 ---
 
-## Location bar
+## Location indicator
 
-**📍 Floor 1 (locating room…)**
+A pill below the site picker shows your current detected location. It updates as the app reads RF signals from your surroundings:
 
-Shows your current detected location. The floor name updates as the app reads RF signals from your surroundings.
+| State | What it means |
+|---|---|
+| **Room name · Floor N** | Room locked in — ready to scan |
+| **Floor N · locating room…** | Floor identified, still narrowing down the room |
+| *(not visible)* | No floor or room detected yet — check radios |
 
-**"Locating room…"** means the app is still narrowing down which room you are in. Wait a moment before scanning assets — the confirmation is more accurate once a specific room is identified. When the room is confirmed, the room name replaces this text.
+Wait until a specific room name appears before scanning assets. Location accuracy improves once the room is confirmed.
 
 <Note>
-  If the location bar stays on "locating room…" for more than 30 seconds, check that Wi-Fi and Bluetooth are both enabled. The app needs both radios to determine your room.
+  If the indicator stays on "locating room…" for more than 30 seconds, check that both Wi-Fi and Bluetooth are enabled. The app needs both radios to determine your room.
 </Note>
 
 ---
 
 ## Quick Actions
 
+The Quick Actions grid gives you one-tap access to every field function.
+
 ### Survey Mode
 
-Captures RF signal fingerprints for a room. Used during initial setup and any time a room's physical environment changes significantly (new walls, major furniture rearrangement, access point changes).
+Captures RF signal fingerprints for a room. Used during initial setup and any time a room's physical environment changes significantly — new walls, major furniture rearrangement, or access point changes.
 
 Select your floor and room, then tap **Capture**. Hold still for about 30 seconds while the app records signals. Repeat for each room on the floor.
 
@@ -122,9 +128,11 @@ Use this when a device cannot be found in its expected location.
   Full guide: starting a device hunt, reading the floor plan, and what to do if the asset is not there.
 </Card>
 
-### ⚡ Most Wanted
+### Most Wanted
 
 A prioritized queue of assets that need confirmation, ranked by how long they have been unseen. Tap any card to go directly to scanning mode for that asset. The queue also has a **Leaderboard** tab showing how your team ranks by confirmation points.
+
+When an admin has an active sprint running, the Most Wanted card turns orange as a visual cue that a competition is in progress.
 
 <Card title="Most Wanted" icon="bolt" href="/field-tech/most-wanted">
   Full guide: point tiers, the queue, the leaderboard, and sprint competitions.
@@ -134,7 +142,7 @@ A prioritized queue of assets that need confirmation, ranked by how long they ha
 
 ## Sprint banner
 
-When your admin has an active sprint running, an orange banner appears below the Quick Actions section. It shows:
+When your admin has an active sprint running, an orange banner appears below the Quick Actions grid. It shows:
 
 | Element | What it means |
 |---|---|
@@ -142,7 +150,6 @@ When your admin has an active sprint running, an orange banner appears below the
 | **Countdown** | How much time is left in the sprint |
 | **My Score** | Your total points earned so far this sprint |
 | **Rank** | Your current position on the sprint leaderboard |
-| **Confirmed** | How many assets you have confirmed this sprint |
 
 Tap **View Queue** to open the Most Wanted queue and start earning points.
 
@@ -154,14 +161,12 @@ Below the sprint banner (or in its place when no sprint is active), a top-3 lead
 
 ---
 
-## Footer links
+## Footer
+
+The footer is always visible at the bottom of the screen:
 
 **Help & Docs** — Opens the Forager documentation site in your browser.
 
 **Contact Support** — Composes an email to the Hiverise Labs support team.
 
----
-
-## Bottom navigation
-
-**Home** (stack icon) — Returns you to this screen from anywhere in the app.
+**App version** — The installed version number, useful when contacting support.
