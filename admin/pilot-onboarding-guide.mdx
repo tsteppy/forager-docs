@@ -121,16 +121,22 @@ Walk the admin through this if they are unfamiliar with the app. The hierarchy m
 
 <Steps>
   <Step title="Build the location tree">
-    In the Forager app → **Manage Locations**. Add nodes in this order:
+    In the Forager app → **Admin** → expand **Location Hierarchy** → tap **Manage Locations**. This opens the location tree screen.
+
+    Add nodes top-down using the **⋮** overflow menu on any existing node and choosing **Add child**. Build in this order:
     1. Campus or site (optional — skip for single-building pilots)
     2. Building
     3. Floor (one node per floor being piloted)
     4. Room (one node per room that will be tracked)
 
     For a typical pilot, you are scoping to **1–2 floors**. Keep it small — a full floor of 15 rooms is a good pilot scope.
+
+    <Note>
+      **Enterprise customers with multi-building or regional hierarchies:** the **Site** level picker in the Location Hierarchy card controls which depth counts as an access boundary. The default is **Building** (direct children of the root). If the customer's hierarchy has a regional level above buildings (e.g., Region → Campus → Building → Floor → Room), update the site level to **Building** after the tree is built. This determines which nodes appear in the site picker on the home screen and how technician access is scoped.
+    </Note>
   </Step>
   <Step title="Upload floor plans">
-    For each floor node, upload a JPEG or PNG of the floor plan. This enables the visual map view in the dashboard and is strongly recommended for pilots — it makes the demo much more compelling.
+    Back on the location tree screen, tap **⋮** on a floor node and choose **Add / replace floor plan**. Upload a JPEG or PNG of the floor plan. This enables the visual map view in the dashboard and is strongly recommended for pilots — it makes the demo much more compelling.
 
     After uploading, the admin places each room's pin on the floor plan image. This takes about 5–10 minutes per floor and only needs to be done once.
   </Step>
