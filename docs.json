@@ -99,7 +99,8 @@
         "pages": [
           "admin/pilot-onboarding-guide",
           "admin/provisioning-companies",
-          "admin/sprint-management"
+          "admin/sprint-management",
+          "admin/self-hosting"
         ]
       }
     ]
