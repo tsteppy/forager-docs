@@ -1,41 +1,36 @@
 ---
 title: "Managing Your Team"
-description: "How to invite technicians, change roles, and remove users from your company"
+description: "How to invite technicians, assign roles, and control location-scoped access"
 ---
 
-The Team page in the dashboard is the central place for admins to manage who has access to your Forager company account.
+The Team page is the central place for admins and leads to manage who has access to your Forager account.
 
 ## Roles
 
-| Role | Access |
-|---|---|
-| **Admin** | Full dashboard access — can invite members, change roles, remove users, configure webhooks, import/export assets, and manage site assignments |
-| **User** | Android app only — records attestations and runs surveys. Sees only the buildings they have been assigned to. No dashboard access. |
+| Role | Dashboard Access | Android App | Manages |
+|---|---|---|---|
+| **Company Admin** | Full access | Full admin panel | Everything across the entire company |
+| **Lead** | Scoped to their location subtree | Scoped admin panel | Users and locations within their assigned scope |
+| **Field Tech** | None | App only | Records attestations at their assigned sites |
+
+**Leads** can be scoped to any level of your location hierarchy. A lead anchored to a Region node manages everything under that region. A lead anchored to a Building node manages just that building. The role is the same — only the scope differs.
 
 ## Inviting a team member
 
-Only admins can send invites. The invite is sent by email and the new member downloads the Forager Android app directly from the link.
+Only admins and leads can send invites. New members are always created as **Field Techs** — promote them after they accept if needed.
 
 <Steps>
   <Step title="Open the Team page">
-    Log into the dashboard at [dashboard.hiveriselabs.com](https://dashboard.hiveriselabs.com) and click **Team** in the left navigation.
+    Log into the dashboard and click **Team** in the left navigation.
   </Step>
   <Step title="Enter the technician's email">
-    In the **Invite Team Member** card, enter their email address and click **Send Invite**. The invite is sent immediately.
+    In the **Invite Team Member** card, enter their email address and click **Send Invite**.
   </Step>
   <Step title="Technician accepts the invite">
-    The technician receives an email with a secure link. When they click it:
-    1. Their account is created and verified automatically — no password required at this step.
-    2. They land on a welcome page with a **Get it on Google Play** button.
-    3. They download the Forager app and sign in with the email address they received the invite on.
-  </Step>
-  <Step title="Technician appears in your team list">
-    Once they have signed in, they appear in the Team member list. Their role is set to **User** by default.
+    The technician receives an email with a secure link. When they click it their account is created automatically. They land on a page with a link to download the Forager app.
   </Step>
   <Step title="Assign the technician to their sites">
-    After sending an invite, a prompt appears on the Team page reminding you to assign the new member to their buildings. Click **Go to Sites →** to open the Sites page and add them.
-
-    Until you assign them to at least one site, they will see an empty screen in the app and cannot confirm any assets.
+    After the invite is sent, a prompt links to the **Sites** page. Assign the new tech to their building — until assigned, they see an empty screen in the app.
 
     <Card title="Managing Sites" icon="building" href="/dashboard/sites">
       How to assign techs to buildings and control site-level access.
@@ -44,31 +39,35 @@ Only admins can send invites. The invite is sent by email and the new member dow
 </Steps>
 
 <Note>
-  New technicians do not need to set a password to start using the app. If they ever need one (e.g., to log in on a new device after the invite link expires), they can use the **Forgot Password** flow on the login screen.
+  New technicians do not need to set a password. If they ever need one after the invite link expires, they can use **Forgot Password** on the login screen.
 </Note>
 
 ## Changing a member's role
 
-Click the role badge on any team member's row to toggle between **Admin** and **User**. The change takes effect immediately.
+Click the role badge on any member's row to open the **Role** dialog. Select the new role:
 
-You cannot change your own role. If you need to demote yourself, ask another admin to do it.
+- **Company Admin** — full access (only company admins can promote to this level)
+- **Lead** — requires selecting a **scope node** from your location hierarchy. The lead will see and manage only the locations and users within that node's subtree.
+- **Field Tech** — removes dashboard access
+
+You cannot change your own role.
+
+## Scope column
+
+The **Scope** column shows which location node a lead is anchored to (e.g., "Southeast Region" or "Building A"). Admins and techs show `—`.
 
 ## Removing a member
 
-Click the trash icon on a member's row. A confirmation prompt will appear. Confirm to remove them — they lose access to the company account immediately.
-
-Any attestations they previously recorded remain in the system and are not affected.
+Click the trash icon on a member's row. Confirm to remove them — they lose access immediately. Any attestations they previously recorded remain in the system.
 
 <Warning>
-  Removing a member cannot be undone from the dashboard. Contact support@hiveriselabs.com if you need to reinstate a removed user.
+  Removing a member cannot be undone from the dashboard. Contact support@hiveriselabs.com to reinstate a removed user.
 </Warning>
 
 ## Sites column
 
-The **Sites** column shows which buildings each technician is assigned to. Admins show **All Sites**. Techs show the names of their assigned buildings, or **—** if they have no assignments yet.
-
-Click **Sites** in the left navigation to manage assignments.
+Shows which buildings each tech is assigned to. Admins show **All Sites**. Leads show **All in scope**. Techs show their assigned building names, or **—** if not yet assigned.
 
 ## Last active
 
-The **Last Active** column shows when each member last recorded an attestation in the Forager app. Use this to identify inactive accounts.
+Shows when each member last recorded an attestation. Use this to identify inactive accounts.
