@@ -1,0 +1,89 @@
+---
+title: "Billing Management"
+description: "How to manage subscription status, apply billing pressure, and handle non-payment for customer accounts"
+---
+
+<Warning>
+  This page is for **Hiverise Labs staff only**. Customers do not have access to the platform admin dashboard.
+</Warning>
+
+## Overview
+
+Each company account has a `subscription_status` that controls what its users can do in Forager. You update this status manually from the company detail page in the platform admin dashboard. There is no automated billing system — invoices are sent manually and status is updated by hand when payment is received or overdue.
+
+## Subscription statuses
+
+| Status | Customer experience | Database access |
+|---|---|---|
+| **Active** | Full access — normal operation | Read and write |
+| **Grace Period** | Amber warning banner on every dashboard page. App and dashboard fully functional. | Read only — new scans, asset updates, and team changes are blocked |
+| **Suspended** | Dashboard redirects to a suspension screen. App scans fail silently at the database layer. | No access |
+
+The warning banner reads: *"Your subscription payment is overdue. Access will be restricted soon. Contact support."* It links to support@hiveriselabs.com.
+
+The suspension screen reads: *"Your Forager account has been suspended due to a lapsed subscription. Your data is safe and will be restored when your account is reinstated."*
+
+## Changing a company's status
+
+<Steps>
+  <Step title="Open the company detail page">
+    Go to `/admin` and click the company name. The detail page shows an activity dashboard and a **Billing** card at the top.
+  </Step>
+  <Step title="Select the new status">
+    In the Billing card, select the desired status using the radio buttons:
+    - **Active** — normal operation
+    - **Grace Period (read-only)** — payment overdue, reads allowed, writes blocked
+    - **Suspended (no access)** — full lockout
+
+    The Save button is disabled until you change the selection from the current value.
+  </Step>
+  <Step title="Save">
+    Click **Save**. The change takes effect immediately — no restart or cache clear needed. The next time any user from that company loads a page, they will see the updated behavior.
+  </Step>
+</Steps>
+
+## Recommended dunning workflow
+
+When a renewal invoice goes unpaid, follow this sequence:
+
+| Day | Action |
+|---|---|
+| 0 | Send invoice (net-30 terms) |
+| 7 | Send payment reminder email |
+| 14 | Send warning email — account will enter read-only mode in 7 days |
+| 21 | Set status → **Grace Period** in the admin dashboard |
+| 30 | Set status → **Suspended** if still unpaid |
+
+When payment is received, set status back to **Active** immediately. The customer regains full access on their next page load.
+
+## What is and is not blocked in Grace Period
+
+Grace Period is read-only at the database layer — the restriction is enforced by RLS policies, not just the UI. This means it applies to both the web dashboard and the Android app.
+
+**Blocked in Grace Period:**
+- Submitting new scans (Android app)
+- Adding or updating asset records
+- Confirming asset presence (attestations)
+- Assigning team members to sites
+- Modifying the location hierarchy
+
+**Still accessible in Grace Period:**
+- Viewing the dashboard, reports, floor plans, and asset registry
+- Viewing team membership and location hierarchy
+- Downloading existing data
+
+This gives customers a strong incentive to pay while preserving their ability to review their data and contact you.
+
+## Data retention
+
+Customer data is never deleted when a company is suspended. All records remain intact and are immediately accessible when the account is reinstated. You can safely leave a company in Suspended status indefinitely without data loss risk.
+
+## Company status in the company list
+
+The `/admin` company list shows a color-coded status badge next to each company name:
+
+- **Active** — green
+- **Grace** — amber
+- **Suspended** — red
+
+This lets you see at a glance which accounts need attention.
