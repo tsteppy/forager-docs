@@ -49,6 +49,23 @@ An asset status indicating that the asset exists in Forager's registry but has n
 
 Never-confirmed assets are not necessarily lost — they may simply not have been encountered during normal field work yet. A high count of never-confirmed assets in an area typically means that area hasn't been swept.
 
+## PMI (Preventive Maintenance Inspection)
+
+A scheduled inspection of a physical asset to verify it is functioning correctly, safely, and in compliance with regulatory standards. Common in healthcare (Joint Commission, DNV), facilities management, and industrial environments. In Forager, PMI schedules are stored as `next_pmi_date` and `pmi_interval_days` on each asset record.
+
+## PMI Status
+
+A computed value indicating where an asset stands relative to its scheduled inspection date:
+
+| Status | Meaning |
+|---|---|
+| **Overdue** | `next_pmi_date` is in the past |
+| **Due Soon** | `next_pmi_date` is within the next 30 days |
+| **OK** | `next_pmi_date` is more than 30 days away |
+| **None** | No PMI schedule has been set for this asset |
+
+PMI Status appears in the [PMI Compliance](/dashboard/reports#pmi-compliance-tab) report and is included in the asset roster export.
+
 ## Presence Confirmation
 
 The core Forager workflow. As field techs move through a facility doing normal IT work, they scan device barcodes. The app compares each scanned device's recorded location to where the tech currently is. Matches are silently recorded; mismatches trigger an alert. Compliance attestation accumulates continuously without dedicated audit walks.

@@ -35,8 +35,26 @@ Download the import template from the Assets page ("Download template" link) and
 | `serial_number` | Physical serial number |
 | `cmdb_id` | The CMDB system's internal record ID (e.g. ServiceNow sys_id) |
 | `cmdb_location` | The CMDB's recorded location string — stored for reference only, never used by the Forager app |
+| `next_pmi_date` | Date the next preventive maintenance inspection is due. Format: `YYYY-MM-DD`. |
+| `pmi_interval_days` | Recurrence interval in days — how often this asset is inspected. Common values: `90` (quarterly), `180` (semi-annual), `365` (annual), `730` (2-year). |
 
 Column headers are matched case-insensitively. Extra columns in your export are ignored.
+
+### PMI columns
+
+`next_pmi_date` and `pmi_interval_days` enable the [PMI Compliance](/dashboard/reports#pmi-compliance-tab) report. Once set, assets appear in the PMI Compliance tab sorted by due date, and overdue devices are flagged immediately.
+
+**How to populate PMI data:**
+
+1. Export your current asset roster (see below) — it now includes `next_pmi_date` and `pmi_interval_days` columns
+2. Fill in the PMI dates and intervals from your CMDB or biomedical equipment management system
+3. Re-import the file — existing `next_pmi_date` and `pmi_interval_days` values are updated; all other confirmed location data is preserved
+
+**Date format:** `YYYY-MM-DD` (e.g. `2026-09-15`). Rows with malformed dates are flagged with a row-level warning; the rest of the file continues to import normally.
+
+**If `pmi_interval_days` is blank:** Forager stores the `next_pmi_date` without a recurrence interval. The asset will appear in the PMI Compliance report but will not automatically advance to the next due date when marked complete.
+
+The import template (downloaded from the Assets page) includes example rows showing both PMI columns filled in for a medical device.
 
 **Limits:** Maximum 10,000 rows per file. Files over this limit are rejected before any rows are processed.
 
@@ -82,6 +100,9 @@ Click **Download CSV** to download the full asset roster. The file is named `for
 | `cmdb_location` | Location string from the most recent CMDB import |
 | `last_seen_location` | Location confirmed by a Forager field tech via presence attestation |
 | `last_seen_at` | Timestamp of the most recent successful confirmation |
+| `next_pmi_date` | Next scheduled preventive maintenance date (`YYYY-MM-DD`), or blank if not set |
+| `pmi_interval_days` | Inspection recurrence interval in days, or blank if not set |
+| `pmi_status` | Computed at export time: `overdue`, `due_soon` (within 30 days), `ok`, or `none` (no schedule) |
 
 ### Understanding the two location columns
 

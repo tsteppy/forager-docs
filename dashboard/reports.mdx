@@ -1,13 +1,16 @@
 ---
 title: "Reports"
-description: "Filter and export asset confirmation status for audits and compliance reviews"
+description: "Filter and export asset confirmation status and PMI compliance data for audits"
 ---
 
 ## Overview
 
-The Reports page gives Team Leads a filterable view of every asset in the system and its current confirmation status. Apply filters to answer questions like "which devices on Floor 2 haven't been seen in the past year?" then export the result as a CSV to share with an auditor.
+The Reports page gives admins and leads two views of your asset fleet:
 
-Reports are accessed from the dashboard sidebar under **Reports**.
+- **Asset Status** — confirmation status per asset (confirmed, mismatch, never confirmed), filterable by location, tech, and recency
+- **PMI Compliance** — upcoming and overdue preventive maintenance inspections, sortable by due date with a summary bar showing fleet health at a glance
+
+Reports are accessed from the dashboard sidebar under **Reports**. Switch between views using the tab bar at the top of the page.
 
 ---
 
@@ -25,9 +28,11 @@ A "Never confirmed" asset is not necessarily lost or misplaced. It may simply no
 
 ---
 
-## Filters
+## Asset Status tab
 
-Use the filter bar at the top of the Reports page to narrow the table.
+### Filters
+
+Use the filter bar to narrow the table. All filters combine — you can filter to "all Mismatch assets on Floor 2 not seen in 90 days" by setting both Status and Not seen in N days together. The active filter set is reflected in the page URL, so filtered views can be bookmarked or shared.
 
 | Filter | What it does |
 |---|---|
@@ -35,14 +40,12 @@ Use the filter bar at the top of the Reports page to narrow the table.
 | **Status** | Filters to Confirmed, Mismatch, or Never confirmed assets only. |
 | **Tech** | Shows only assets whose most recent confirmation was performed by a specific team member. |
 | **Not seen in N days** | Shows assets that have not received a successful confirmation in the selected number of days — or have never been confirmed. Options: 30, 90, 180, or 365 days. |
-
-Filters combine — you can filter to "all Mismatch assets on Floor 2 not seen in 90 days" by setting both Status and Not seen in N days together.
-
-The active filter set is reflected in the page URL, so filtered views can be bookmarked or shared.
+| **PMI Status** | Filters to assets by their preventive maintenance schedule status: Overdue, Due within 30 days, On schedule, or No schedule. |
+| **PMI Due Before** | Shows assets whose next PMI date falls on or before the selected date. Useful for pulling a list of devices due before a specific inspection window. |
 
 ---
 
-## Columns
+### Columns
 
 | Column | Description |
 |---|---|
@@ -56,13 +59,50 @@ The active filter set is reflected in the page URL, so filtered views can be boo
 
 ---
 
-## Exporting to CSV
+### Exporting to CSV
 
 Click **Export CSV** to download the current filtered view as a `.csv` file. The export respects all active filters — if you've filtered to Floor 2 assets not seen in 365 days, the export contains only those rows.
 
 The file is named `forager-report-YYYY-MM-DD.csv` with today's date.
 
-CSV columns match the table: Asset Tag, Recorded Location, Status, Last Confirmed (ISO timestamp), Last Tech, Confirmations, Mismatches.
+CSV columns: Asset Tag, Recorded Location, Status, Last Confirmed (ISO timestamp), Last Tech, Confirmations, Mismatches.
+
+---
+
+## PMI Compliance tab
+
+The PMI Compliance tab shows every asset that has a PMI schedule on record, sorted by due date — most overdue first.
+
+### Summary bar
+
+Four tiles at the top of the tab show fleet-wide PMI health at a glance:
+
+| Tile | Meaning |
+|---|---|
+| **Overdue** (red) | Assets whose `next_pmi_date` is in the past |
+| **Due within 30 days** (amber) | Assets due within the next 30 days |
+| **On schedule** (green) | Assets with a future PMI date beyond 30 days |
+
+### Columns
+
+| Column | Description |
+|---|---|
+| **Asset Tag** | Asset identifier |
+| **Asset Name** | Device name from the asset record |
+| **Location** | Last recorded location |
+| **Next PMI** | The date the next inspection is due (`YYYY-MM-DD`) |
+| **Interval** | Recurrence schedule: Quarterly (90d), Semi-annual (180d), Annual (365d), 2-year (730d), or custom |
+| **Status** | Overdue / Due Soon / OK badge |
+| **Days** | Days until due (positive) or days overdue (shown in red) |
+| **Last Attested** | How long ago a tech physically confirmed this device |
+
+The table is sorted most-overdue first by default.
+
+### Exporting PMI data
+
+Click **Export CSV** on the PMI Compliance tab to download a PMI-specific file (`forager-pmi-YYYY-MM-DD.csv`). This export is formatted for compliance handoff — it includes the human-readable interval label (e.g., "Semi-annual"), days overdue or remaining as a signed number, and the last attestation timestamp.
+
+To add PMI schedules to your assets, see [Assets — Importing PMI data](/dashboard/assets#pmi-columns).
 
 ---
 
@@ -79,3 +119,12 @@ Set *Location* → the floor node. Review the Status column to see which rooms h
 
 **Assets a specific tech has confirmed**
 Set *Tech* → the team member's name. Useful for verifying field work coverage during a scheduled sweep.
+
+**All assets with overdue PMI (for a Joint Commission prep walk)**
+Switch to the **PMI Compliance** tab. The table is already sorted most-overdue first. Export the CSV for your compliance binder.
+
+**Devices due for PMI before a specific date**
+On the Asset Status tab, set *PMI Due Before* to your cutoff date. Export the filtered list to share with your biomedical or facilities team.
+
+**PMI coverage gap — assets with no schedule**
+On the Asset Status tab, set *PMI Status* → **No schedule**. These assets exist in Forager but have no `next_pmi_date` on record. Add them via CMDB re-import with PMI columns populated.
