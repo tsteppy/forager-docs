@@ -18,24 +18,24 @@ When you run a survey capture, the app records 4–6 samples of every Wi-Fi acce
     From the Forager home screen, tap **Survey Mode**.
   </Step>
   <Step title="Select the floor">
-    Use the floor selector at the top to choose which floor you are on. Rooms are sorted by urgency — unsurveyed rooms appear first, followed by rooms with stale fingerprints.
+    Use the floor selector at the top to choose which floor you are on. Rooms are grouped by urgency — **Needs Attention** rooms appear first, followed by **Monitor**, then **Covered**. Each row shows the current sample count and days since the last survey.
   </Step>
   <Step title="Enter the room">
     Physically walk into the room you want to survey. Stand near the center, away from doorways. Tap the room in the list.
   </Step>
   <Step title="Tap Capture">
-    Tap the **Capture** button. The quality ring fills as each sample is taken. The full capture takes approximately 30 seconds. Stay still — walking or moving between rooms during capture degrades the fingerprint.
+    Tap the **Capture** button. The app records a set of RF samples — the sample count increments as each one completes. The full capture takes approximately 30 seconds. Stay still — walking or moving between rooms during capture degrades the fingerprint.
   </Step>
   <Step title="Repeat for each room on the floor">
     After the capture completes, tap **Back** to return to the room list and move to the next room. Work your way through every room on the floor.
   </Step>
 </Steps>
 
-## Reading the quality ring
+## Reading the sample count
 
-The ring on the capture screen fills one segment per completed sample. A full ring (all four segments filled) indicates a strong fingerprint. A partial ring is still usable but may result in lower confidence during location classification.
+After a capture completes, the room row shows an updated sample count and quality category. More samples mean a tighter fingerprint and higher confidence during room classification. There is no fixed minimum, but rooms with 3+ captures from different positions in the room consistently reach **Covered** status.
 
-If the ring stops filling, the app may be having trouble scanning signals. Check that Wi-Fi and Bluetooth are enabled on your device.
+If a capture completes but the sample count does not increase, the app may be having trouble scanning signals. Check that Wi-Fi and Bluetooth are enabled on your device.
 
 ## Adding a room during survey
 

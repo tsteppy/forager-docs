@@ -11,34 +11,44 @@ From the Forager home screen, tap **Coverage**.
 
 Use the floor selector to switch between floors. Each room on the selected floor appears in the list with a quality indicator.
 
-## Quality indicators
+## Room categories
 
-| Color | Meaning | Action |
+Rooms are grouped into three categories based on fingerprint quality:
+
+| Category | Meaning | Action |
 |---|---|---|
-| **Green** | Well surveyed — strong fingerprint, high confidence location matching | None required |
-| **Yellow** | Thin coverage — few samples captured, lower confidence | Re-survey when convenient |
-| **Gray** | Not yet surveyed | Survey before using this room for attestation |
+| **Needs Attention** | Not yet surveyed, or fingerprint is too thin for reliable matching | Survey before using for attestation |
+| **Monitor** | Surveyed but coverage is thin — low sample count or old data | Re-survey when convenient |
+| **Covered** | Well surveyed — strong fingerprint, high confidence matching | None required |
 
-A room cannot be used for reliable presence confirmation until it shows green. Scanning in a gray or yellow room will still work, but the app may misidentify your location.
+A room cannot be used for reliable presence confirmation until it reaches **Covered**. Scanning in a Needs Attention or Monitor room still works, but the app may misidentify your location.
 
-## Stale coverage banner
+## Reading a room row
 
-If any rooms have not been surveyed in over 90 days, a banner appears at the top of the coverage screen. Tap the banner to open a refresh sheet listing which rooms need attention. You can navigate directly to Survey Mode for any of those rooms from the sheet.
+Each room row shows:
+
+- **Colored dot** — quality at a glance (red = Needs Attention, yellow = Monitor, green = Covered)
+- **Sample count** — how many RF captures have been recorded for this room
+- **AP count** — number of distinct Wi-Fi access points detected during survey (higher is better)
+- **Days since last survey** — how recently the fingerprint was updated
+
+## List and map views
+
+Tap the **map icon** in the top-right corner to switch between list view and map view. Map view overlays coverage quality on the floor plan — useful for identifying gaps visually. Map view requires a floor plan to be uploaded by your admin.
 
 ## Refreshing a room
 
-To re-survey a specific room:
+To re-survey a specific room, tap its row in the coverage list. The app navigates directly to Survey Mode for that room. Walk into the room, follow the capture steps, and return to Coverage to confirm the quality has improved.
 
-1. Tap the room row in the coverage list
-2. Tap **Re-survey this room**
-3. Walk into the room and follow the survey capture steps
-
-Re-surveying overwrites the existing fingerprint. Do it when the room's equipment layout or network configuration has changed, when the app is consistently misidentifying the room, or when the stale banner flags it.
+Re-survey when:
+- The room's equipment layout or network configuration has changed
+- The app is consistently misidentifying the room
+- The sample count is low or the last survey was many months ago
 
 ## Coverage by floor
 
-Coverage is displayed per floor. A floor with all-green rooms is ready for full attestation operation. A floor with gray rooms means some areas have no location data — techs scanning assets there may not get accurate room attribution.
+Coverage is displayed per floor. A floor with all-green rooms is ready for full attestation operation. A floor with rooms in Needs Attention means some areas have no location data — techs scanning assets there may not get accurate room attribution.
 
 <Note>
-  Coverage reflects your most recent survey. If you have surveyed a room recently but it still shows yellow, it may need more capture passes. Run one more capture from a different position in the room to supplement the existing fingerprint.
+  Coverage reflects your most recent survey. If you have surveyed a room recently but it still shows Monitor, it may need more capture passes. Run one more capture from a different position in the room to supplement the existing fingerprint.
 </Note>

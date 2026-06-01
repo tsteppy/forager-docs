@@ -43,11 +43,33 @@ When a mismatch appears, you have two options:
 
 **Dismiss** — leave the recorded location unchanged. Forager writes a `mismatch_dismissed` attestation. Use this when you picked up the device to service it and will return it to its original location, or when you believe the current room classification is incorrect.
 
+## Overriding your detected room
+
+If the app shows the wrong room in the location chip, you can manually select your actual room before scanning:
+
+1. Tap the **room chip** at the top of the Presence Confirmation screen
+2. A room picker sheet opens — select the correct room
+3. The chip updates and all subsequent scans use your selected room
+
+Use this when RF detection is uncertain (low confidence, wrong room shown) or when surveying hasn't been completed for your area. Your manual selection is not saved after you leave the screen.
+
 ## Tips for accurate scanning
 
 - Stand still when the app is determining your location — walking between rooms while scanning can cause the app to classify you in the wrong room
 - Scan assets in the room they live in, not from a hallway or doorway
 - If you moved a device for repair, scan it again when you return it
+
+## Points earned sheet
+
+After each successful confirmation, a sheet pops up showing what you earned:
+
+| Badge | Points |
+|---|---|
+| 🔥 | 10 pts — asset never confirmed or not seen in 90+ days |
+| ⚡ | 3 pts — not confirmed in 30–89 days |
+| ✓ | 1 pt — confirmed within the last 30 days |
+
+Tap **Done** to return to scanning mode. Tap **Next in queue →** to jump to the Most Wanted list and pick the next target without losing your momentum.
 
 ## Offline scanning
 
