@@ -1,0 +1,59 @@
+---
+title: "Signal Diagnostic"
+description: "Generate an on-demand RF snapshot report for demos, troubleshooting, or sharing"
+---
+
+Signal Diagnostic captures everything Forager currently sees — Wi-Fi signals, Bluetooth devices, sensor readings, and the room classification decision — and packages it into a shareable HTML report. It is intended for demonstrations and troubleshooting, not routine scanning.
+
+## When to use it
+
+- **Sales demos:** Show a prospect exactly what Forager detects in their environment and how location is determined.
+- **Troubleshooting:** If a room is being misidentified, capture a diagnostic to share with support.
+- **Coverage verification:** Spot-check that the signal environment looks healthy after a re-survey.
+
+Signal Diagnostic does **not** write a confirmation record. It has no effect on attestation history or CMDB data.
+
+## Running a diagnostic
+
+<Steps>
+  <Step title="Open Presence Confirmation">
+    From the home screen, tap **Presence Confirmation**.
+  </Step>
+  <Step title="Wait for room lock">
+    Wait until the app shows a room name and confidence level. The diagnostic captures a live snapshot — running it during "Locating…" will produce a report with no room classification.
+  </Step>
+  <Step title="Tap the diagnostic icon">
+    Tap the **chart icon** (Analytics) in the top-right corner of the screen. The icon is replaced by a spinner while the report is generated, which takes 1–2 seconds.
+  </Step>
+  <Step title="Share or save the report">
+    The Android share sheet opens. Send the report via email, messaging, or save it to Files. The report is a self-contained HTML file — no internet connection needed to view it.
+  </Step>
+</Steps>
+
+## What the report shows
+
+| Section | Contents |
+|---|---|
+| **Location** | Current room, confidence level (High / Medium / Low), confidence margin |
+| **Summary stats** | Wi-Fi signal count, Bluetooth device count, floor estimate, magnetic field strength |
+| **Room candidates** | Top 5 rooms Forager considered, with match scores visualized as bars |
+| **Wi-Fi signals** | Band breakdown (2.4 / 5 / 6 GHz), standard breakdown (Wi-Fi 4/5/6/7), signal strength table |
+| **Bluetooth devices** | Infrastructure vs. mobile device counts, per-device signal table |
+| **Sensors** | Barometric pressure, magnetic field, device orientation |
+| **Raw data** | Full JSON payload with a copy button |
+
+The report includes a **Print / Save as PDF** button for sharing outside of email or creating a paper record.
+
+<Note>
+  Reports are generated from the live signal state at the moment you tap the button. They are not stored in Forager or synced to the dashboard. Save or send the report immediately — it will not be retrievable later.
+</Note>
+
+## Interpreting the confidence level
+
+| Level | What it means |
+|---|---|
+| **High** | Strong, unambiguous match. The signal pattern closely matches one surveyed room with a clear margin over all others. |
+| **Medium** | Good match, but margin over the next candidate is smaller. Location is likely correct. |
+| **Low** | Weak or ambiguous match. Consider re-surveying this area. |
+
+A low-confidence diagnostic report is useful evidence when filing a support request — it shows exactly what signals were present and why classification struggled.

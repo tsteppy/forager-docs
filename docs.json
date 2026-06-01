@@ -12,7 +12,7 @@
   "logo": {
     "light": "/logo/forager-light.svg",
     "dark": "/logo/forager-dark.svg",
-    "href": "https://hiveriselabs.com"
+    "href": "https://harbinge.rs"
   },
   "navbar": {
     "primary": {
@@ -38,7 +38,7 @@
         "items": [
           {
             "label": "Email Support",
-            "href": "mailto:support@hiveriselabs.com"
+            "href": "mailto:support@harbinge.rs"
           }
         ]
       }
@@ -92,16 +92,6 @@
           "troubleshooting/app-location",
           "troubleshooting/floor-plan",
           "troubleshooting/webhooks"
-        ]
-      },
-      {
-        "group": "Platform Admin",
-        "pages": [
-          "admin/pilot-onboarding-guide",
-          "admin/provisioning-companies",
-          "admin/billing-management",
-          "admin/sprint-management",
-          "admin/self-hosting"
         ]
       }
     ]

@@ -4,7 +4,7 @@ description: "Complete guide for enterprise teams deploying Forager on their own
 ---
 
 <Warning>
-  Self-hosting requires comfortable familiarity with Linux server administration, Docker, and SQL. Plan for a half-day of setup time. Contact [support@hiveriselabs.com](mailto:support@hiveriselabs.com) before starting — we provide a migration bundle and a custom-compiled APK for self-hosted deployments.
+  Self-hosting requires comfortable familiarity with Linux server administration, Docker, and SQL. Plan for a half-day of setup time. Contact [support@harbinge.rs](mailto:support@harbinge.rs) before starting — we provide a migration bundle and a custom-compiled APK for self-hosted deployments.
 </Warning>
 
 ## Overview
@@ -309,7 +309,7 @@ The Android app has your Supabase URL and anon key compiled into the binary. You
 
 <Steps>
   <Step title="Send Hiverise your credentials">
-    Email [support@hiveriselabs.com](mailto:support@hiveriselabs.com) with:
+    Email [support@harbinge.rs](mailto:support@harbinge.rs) with:
     - Your `SUPABASE_URL`
     - Your `SUPABASE_ANON_KEY`
     - Your organisation name (used in the app's build config)

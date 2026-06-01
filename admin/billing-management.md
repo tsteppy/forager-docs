@@ -19,7 +19,7 @@ Each company account has a `subscription_status` that controls what its users ca
 | **Grace Period** | Amber warning banner on every dashboard page. App and dashboard fully functional. | Read only — new scans, asset updates, and team changes are blocked |
 | **Suspended** | Dashboard redirects to a suspension screen. App scans fail silently at the database layer. | No access |
 
-The warning banner reads: *"Your subscription payment is overdue. Access will be restricted soon. Contact support."* It links to support@hiveriselabs.com.
+The warning banner reads: *"Your subscription payment is overdue. Access will be restricted soon. Contact support."* It links to support@harbinge.rs.
 
 The suspension screen reads: *"Your Forager account has been suspended due to a lapsed subscription. Your data is safe and will be restored when your account is reinstated."*
 
