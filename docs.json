@@ -77,7 +77,8 @@
           "dashboard/reports",
           "dashboard/assets",
           "dashboard/webhook-settings",
-          "dashboard/scanner-settings"
+          "dashboard/scanner-settings",
+          "dashboard/attestations"
         ]
       },
       {

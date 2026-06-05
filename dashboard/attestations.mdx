@@ -1,0 +1,51 @@
+---
+title: "Attestation Log"
+description: "View every asset scan your team has recorded, with optional asset tag photos"
+---
+
+The Attestation Log shows every individual scan event recorded by your field techs — one row per barcode scan, in reverse chronological order. If your company has Photo Attestation enabled, each row includes a thumbnail of the physical asset tag captured at the moment of the scan.
+
+## Accessing the log
+
+From the dashboard navigation, click **Attestation Log**. The page loads the 200 most recent attestation events across all techs in your company.
+
+## Reading the log
+
+| Column | What it shows |
+|---|---|
+| **Asset tag** | The barcode value scanned by the tech |
+| **Result** | The outcome of the scan (see below) |
+| **Location** | The room, floor, and building the tech was in when they scanned |
+| **When** | Date and time of the scan |
+| **Photo** | Thumbnail of the asset tag, if Photo Attestation is enabled |
+
+### Result types
+
+| Result | Meaning |
+|---|---|
+| **Match** | Asset was found in its recorded location — clean confirmation |
+| **Mismatch — moved** | Asset was in a different room; tech confirmed the move and updated the location |
+| **Mismatch — dismissed** | Asset was in a different room; tech dismissed the alert without updating the location |
+| **New asset** | Barcode was not in the registry; Forager created a new asset record at the current location |
+
+## Photo thumbnails
+
+When Photo Attestation is enabled for your company, each camera-mode scan captures a tight crop of the physical asset tag at the moment the barcode is detected. The crop appears as a 48×48 thumbnail in the Photo column.
+
+Click any thumbnail to expand it to full size. Click outside the expanded image or press the close button to dismiss it.
+
+Rows that show **—** in the Photo column were either scanned in hardware trigger mode (no camera frame available) or recorded before Photo Attestation was enabled.
+
+<Note>
+  Photo Attestation is opt-in. If you are not seeing thumbnails, check with your Hiverise Labs account manager to enable it for your company.
+</Note>
+
+## What the log is for
+
+The Attestation Log is an **event log**, not an asset status view. Each row is a single scan event — the same asset may appear many times across different sessions.
+
+For asset-level compliance status (last confirmed date, coverage percentage, overdue count), use the [Reports](/dashboard/reports) page instead.
+
+<Card title="Reports" icon="chart-bar" href="/dashboard/reports">
+  Asset-level compliance status, filters, and CSV export.
+</Card>

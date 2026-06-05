@@ -258,6 +258,50 @@ The suspension screen reads: *"Your Forager account has been suspended due to a 
 
 When payment is received, set status back to **Active** immediately. The customer regains full access on their next page load.
 
+---
+
+## Photo Attestation
+
+Photo Attestation captures a tight crop of the physical asset tag at the moment of each camera-mode barcode scan, stores it in Supabase Storage, and links it to the attestation record. Admins and compliance officers can then view the photos in the Attestation Log on the web dashboard.
+
+This feature is opt-in per company and disabled by default.
+
+### When to enable it
+
+Enable Photo Attestation for customers who need physical proof-of-presence for audits — typically those working toward Joint Commission accreditation, ISO 55000 compliance, or internal IT policy that requires evidence a tech directly witnessed a device.
+
+### Enabling Photo Attestation
+
+<Steps>
+  <Step title="Open the company detail page">
+    Go to `/admin` and click the company name.
+  </Step>
+  <Step title="Find the Photo Attestation toggle">
+    In the **Billing** card, scroll below the subscription status controls to the **Photo Attestation** section.
+  </Step>
+  <Step title="Enable">
+    Check the **Capture asset tag photo on each camera scan** checkbox. The setting saves immediately — no separate Save button.
+  </Step>
+</Steps>
+
+The Android app picks up the setting on the tech's next login (or app restart). From that point on, every camera scan automatically captures a photo.
+
+### What techs see
+
+Techs see no additional UI when photo attestation is active — the capture is silent and non-blocking. The scan result (match, mismatch, etc.) appears immediately; the photo uploads in the background.
+
+### Limitations
+
+- **Hardware scanner mode only:** No photo is captured. Attestations are still recorded normally without a photo.
+- **Camera mode only:** The feature has no effect on Zebra/Honeywell hardware trigger devices unless the tech switches to camera fallback.
+- **Best-effort upload:** If the device is offline at scan time, the attestation is recorded locally and syncs when connectivity returns. The photo upload also retries, but there is no guarantee a photo will be available for every offline scan.
+
+### Storage
+
+Photos are stored in a private Supabase Storage bucket (`attestation-photos`) scoped to each company's folder. Photos are not publicly accessible — the dashboard generates short-lived signed URLs (1 hour) for viewing.
+
+Estimated storage: 15–40 KB per scan. At 500 scans/day, one active company uses roughly 300–600 MB/month.
+
 ### What is and is not blocked in Grace Period
 
 Grace Period is read-only at the database layer via RLS — applies to both the web dashboard and the Android app.

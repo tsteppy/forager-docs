@@ -66,6 +66,12 @@ A computed value indicating where an asset stands relative to its scheduled insp
 
 PMI Status appears in the [PMI Compliance](/dashboard/reports#pmi-compliance-tab) report and is included in the asset roster export.
 
+## Photo Attestation
+
+An optional feature that captures a tight JPEG crop of the physical asset tag at the moment of each camera barcode scan. The photo is stored alongside the attestation record and is viewable as a thumbnail in the web Attestation Log. Provides auditors with timestamped visual evidence that a tech directly witnessed a device.
+
+Photo Attestation is opt-in per company and has no effect on hardware scanner attestations (no camera frame is available in that path).
+
 ## Presence Confirmation
 
 The core Forager workflow. As field techs move through a facility doing normal IT work, they scan device barcodes. The app compares each scanned device's recorded location to where the tech currently is. Matches are silently recorded; mismatches trigger an alert. Compliance attestation accumulates continuously without dedicated audit walks.
