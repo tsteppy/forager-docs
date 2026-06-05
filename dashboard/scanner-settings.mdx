@@ -47,11 +47,19 @@ If your IT policy requires managing DataWedge profiles centrally, you can create
 
 If both profiles exist simultaneously, scans may fire twice. Keep only one active profile.
 
+## Device-level override (in-app admin)
+
+Admins can view and override the scanner mode on any individual device from inside the Forager app. This is useful for troubleshooting a specific device without changing the company-wide default.
+
+From the home screen: tap your profile avatar → **Admin** → expand the **Scanner Input** section.
+
+The card shows the current effective mode for that device. Use the **Override** button to force a specific mode, or **Reset** to return to the company default. The override applies only to the device you are holding.
+
 ## Company-level default
 
-Admins can set a default scanner mode that applies to all devices in your company. This default is applied at login and overrides the device's local setting.
+Admins can set a default scanner mode that applies to all devices in your organization. This default is synced from the server at login, so techs always pick up the company policy automatically — no per-device configuration needed.
 
-Set `scanner_mode` on your company's row in the `companies` table:
+To set the company default, update `scanner_mode` on your company's row:
 
 ```sql
 UPDATE companies
@@ -60,5 +68,15 @@ WHERE id = '<your-company-id>';
 ```
 
 <Note>
-  A dashboard UI for this setting is planned. Until then, use the SQL above via the Supabase dashboard or contact Hiverise Labs support to set it for you.
+  A dashboard UI for company-level scanner mode is planned. Until then, use the SQL above via the Supabase dashboard or contact Harbinge.rs support to set it for you.
 </Note>
+
+## What techs see on first use
+
+The first time a tech opens the app on a device where hardware scanner mode is active (either from the company default or a device override), a notification appears at the bottom of the home screen:
+
+> **Hardware scanner mode active — use your trigger to scan**
+
+This notification appears once and does not repeat. It is intended to orient techs who may not have used the hardware trigger before.
+
+If a tech does not see this notification and is unsure whether hardware mode is enabled, they can check under profile → Admin → Scanner Input, or look at the scan screen — hardware mode shows **"Waiting for scan…"** instead of a camera preview.

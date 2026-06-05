@@ -76,7 +76,8 @@
           "dashboard/sites",
           "dashboard/reports",
           "dashboard/assets",
-          "dashboard/webhook-settings"
+          "dashboard/webhook-settings",
+          "dashboard/scanner-settings"
         ]
       },
       {
