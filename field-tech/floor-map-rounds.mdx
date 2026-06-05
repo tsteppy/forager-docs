@@ -1,0 +1,60 @@
+---
+title: "Floor Map Rounds"
+description: "How to use the floor map view to run visual confirmation rounds on a familiar floor"
+---
+
+The Floor Map view gives you a bird's-eye view of a floor with every room's attestation status overlaid as colored pins. It is the fastest way to do a confirmation round when you already know the layout — walk the floor, spot the red pins, tap to confirm.
+
+## Opening the floor map
+
+In the app, navigate to your location hierarchy (**Manage Locations** or the building → floor list). Each floor that has a floor plan uploaded shows a map icon to the right of its name. Tap the map icon to open the Floor Map view for that floor.
+
+If no map icon appears, the floor plan has not been uploaded yet. Ask your admin to add one from the dashboard.
+
+## Reading the pin colors
+
+Each room with at least one tracked asset shows a pin on the floor plan. Pin color reflects how recently the room was last confirmed:
+
+| Color | Meaning |
+|---|---|
+| Green | Confirmed within the last 7 days |
+| Amber | Last confirmed 7–30 days ago |
+| Red | Not confirmed in over 30 days, or never confirmed |
+
+These thresholds match the staleness indicators on the web dashboard, so what you see in the app lines up with what your manager sees in the dashboard.
+
+## Filtering by asset type
+
+A row of filter chips runs along the top of the screen — one chip per asset type present on the floor (for example, **Printers**, **Ventilators**, **Workstations**). Tapping a chip shows only the pins for rooms that contain that asset type. Tap it again to deselect.
+
+When one or more filters are active, a count appears showing how many rooms are currently visible out of the total on the floor (e.g., **"4 of 12 rooms shown"**). This is useful when you're responsible for a specific asset category and want to work through only those rooms.
+
+## Confirming a room
+
+<Steps>
+  <Step title="Tap a room pin">
+    Tap any pin on the floor plan. A bottom sheet slides up showing the room name and asset type.
+  </Step>
+  <Step title="Tap Confirm Here">
+    Tap **Confirm Here** to record that you have physically visited and verified the assets in that room. The pin immediately turns green with a checkmark.
+  </Step>
+  <Step title="Move to the next pin">
+    Tap **Cancel** to dismiss the sheet without confirming, or simply tap another pin to move on.
+  </Step>
+</Steps>
+
+## Navigating a dense floor plan
+
+The floor plan supports pinch-to-zoom and two-finger pan so you can work precisely on floors with many rooms close together. Double-tap anywhere to zoom in on that area. Tap the reset button in the top-right corner at any time to return to the full-floor fit-to-screen view.
+
+<Note>
+  Floor Map Rounds confirm that you have been in the room — they do not require scanning individual asset barcodes. For full asset-level attestation, use the standard scanning flow in Survey Mode or the home screen scanner.
+</Note>
+
+<Card title="Survey Mode" icon="map" href="/field-tech/survey-mode">
+  How to survey rooms and set up RF fingerprints for location-aware attestation.
+</Card>
+
+<Card title="Device Hunt" icon="search" href="/field-tech/device-hunt">
+  Navigate to a specific missing asset using the floor plan.
+</Card>
