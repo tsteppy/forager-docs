@@ -1,0 +1,64 @@
+---
+title: "Scanner Settings"
+description: "Configure how Forager handles barcode input on enterprise scanner devices"
+---
+
+Forager supports hardware barcode scanners (Zebra DataWedge, Honeywell DataCollection) in addition to the device camera. The Scanner Input settings control which input method the app uses.
+
+## Where to find it
+
+Scanner settings are in the **Forager Android app**. You must be logged in as an admin.
+
+From the home screen: tap your profile avatar → **Admin** → expand the **Scanner Input** section.
+
+## Input modes
+
+| Mode | Behavior |
+|---|---|
+| **Auto** | The app checks for Zebra or Honeywell packages at startup. On a device with a hardware scanner, the hardware trigger is used. On a standard phone, the camera is used. This is the default. |
+| **Camera** | Always uses the device camera, regardless of device type. |
+| **Hardware** | Always uses the hardware trigger. The camera preview is hidden and techs see "Waiting for scan…" instead. |
+
+**When to use Hardware mode:**
+- You have a dedicated fleet of Zebra or Honeywell devices and want to enforce consistent behavior
+- Camera use is restricted in your environment (e.g., hospital security policy)
+- You want to eliminate the camera preview entirely to reduce UI confusion for techs
+
+**When to use Auto:** Mixed fleets where some techs have scanner devices and others use standard phones. Each device will use the appropriate input method without any per-device configuration.
+
+## Camera fallback (Hardware mode only)
+
+When input mode is set to **Hardware**, you can optionally enable the **Allow camera fallback** toggle. When enabled, techs will see a **"Use camera instead"** button on the scan screen, letting them fall back to the camera for barcodes the hardware scanner has difficulty reading (e.g., damaged labels, unusual symbologies).
+
+Leave this off if you need to enforce hardware-only scanning at all times.
+
+## DataWedge configuration (Zebra devices)
+
+Forager automatically creates a DataWedge profile on first launch on Zebra devices. The profile configures DataWedge to send scanned barcodes to Forager via broadcast intent. No manual configuration is required.
+
+If your IT policy requires managing DataWedge profiles centrally, you can create the profile manually instead:
+
+1. Open **DataWedge** on the device
+2. Create a new profile and associate it with the **Forager** app
+3. Under **Intent Output**, enable it and set:
+   - **Intent action:** `com.hiveriselabs.forager.SCAN`
+   - **Intent delivery:** Broadcast intent
+4. Disable the auto-created Forager profile or delete it to avoid conflicts
+
+If both profiles exist simultaneously, scans may fire twice. Keep only one active profile.
+
+## Company-level default
+
+Admins can set a default scanner mode that applies to all devices in your company. This default is applied at login and overrides the device's local setting.
+
+Set `scanner_mode` on your company's row in the `companies` table:
+
+```sql
+UPDATE companies
+SET scanner_mode = 'hardware'  -- 'auto', 'camera', or 'hardware'
+WHERE id = '<your-company-id>';
+```
+
+<Note>
+  A dashboard UI for this setting is planned. Until then, use the SQL above via the Supabase dashboard or contact Hiverise Labs support to set it for you.
+</Note>

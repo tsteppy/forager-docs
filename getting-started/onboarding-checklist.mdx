@@ -27,6 +27,15 @@ Follow this checklist in order. Each step unlocks the next.
       Full guide: inviting members, changing roles, and removing users.
     </Card>
   </Step>
+  <Step title="Configure scanner input mode (Zebra/Honeywell deployments)">
+    If your team uses Zebra or Honeywell devices with hardware barcode scanners, set the input mode before techs start scanning. In the app, go to your profile avatar → **Admin** → **Scanner Input**.
+
+    - **Auto** (default) — the app detects the scanner and uses it if present, otherwise falls back to camera. Works for mixed fleets.
+    - **Hardware** — always uses the hardware trigger. Recommended for dedicated scanner fleets.
+    - **Camera** — always uses the device camera. Use this if you want consistent behavior regardless of device type.
+
+    See the [Scanner Settings](/dashboard/scanner-settings) guide for details, including the camera fallback option and company-level defaults.
+  </Step>
   <Step title="Assign techs to their sites">
     New team members have no site access until you assign them. In the dashboard, go to **Sites** and add each technician to the buildings they work in.
 
