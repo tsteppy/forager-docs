@@ -65,7 +65,8 @@
           "field-tech/attestation-log",
           "field-tech/signal-diagnostic",
           "field-tech/device-hunt",
-          "field-tech/most-wanted"
+          "field-tech/most-wanted",
+          "field-tech/inventory-placement"
         ]
       },
       {
@@ -91,6 +92,7 @@
           "admin/sprint-management",
           "admin/remediation-sprints",
           "admin/pilot-onboarding-guide",
+          "admin/inventory-placement",
           "admin/self-hosting"
         ]
       },
