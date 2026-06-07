@@ -28,6 +28,21 @@ Every resolved item requires a barcode scan — there is no way to mark an item 
 
 ## Creating a sprint
 
+You can create a sprint manually by entering asset tags, or automatically from the PMI Compliance report.
+
+### Auto-create from PMI Compliance
+
+If you have assets with an overdue PMI schedule, go to **Dashboard → Reports → PMI Compliance** and click **Create Sprint from Overdue**. Forager:
+
+1. Pulls every asset currently in **Overdue** status
+2. Creates a sprint named `PMI Overdue — YYYY-MM-DD`
+3. Pre-populates it with all overdue assets (unassigned)
+4. Redirects you to the sprint detail page
+
+Skip the manual steps below and go straight to [Assigning items to techs](#assigning-items-to-techs). The asset list and sprint name are already set.
+
+### Manual creation
+
 From the web dashboard:
 
 1. Go to **Dashboard → Sprints**.

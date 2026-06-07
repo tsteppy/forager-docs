@@ -82,6 +82,24 @@ Four tiles at the top of the tab show fleet-wide PMI health at a glance:
 | **Overdue** (red) | Assets whose `next_pmi_date` is in the past |
 | **Due within 30 days** (amber) | Assets due within the next 30 days |
 | **On schedule** (green) | Assets with a future PMI date beyond 30 days |
+| **No schedule** (gray) | Assets that have no `next_pmi_date` on record |
+
+### Create Sprint from Overdue
+
+When there are overdue assets, a **Create Sprint from Overdue** button appears in the tab header next to Export CSV. Clicking it:
+
+1. Pulls all assets currently showing **Overdue** status
+2. Creates a new Remediation Sprint named `PMI Overdue — YYYY-MM-DD` (today's date)
+3. Pre-populates the sprint with every overdue asset, unassigned
+4. Redirects you to the sprint detail page so you can assign items to techs immediately
+
+The button is disabled (grayed out) when the overdue count is zero — there is nothing to queue.
+
+<Tip>
+  Use this button at the start of any pre-audit sweep. The sprint gives techs a bounded, scan-required work queue and produces a timestamped attestation record for every item they resolve — exactly what auditors ask for.
+</Tip>
+
+Once the sprint is created, manage assignments and track resolution from **Dashboard → Sprints**. See [Remediation Sprints](/admin/remediation-sprints) for the full workflow.
 
 ### Columns
 
