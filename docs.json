@@ -86,12 +86,9 @@
         "group": "Admin",
         "pages": [
           "admin/admin-guide",
-          "admin/provisioning-companies",
-          "admin/billing-management",
           "admin/notice-management",
           "admin/sprint-management",
           "admin/remediation-sprints",
-          "admin/pilot-onboarding-guide",
           "admin/inventory-placement",
           "admin/self-hosting"
         ]
