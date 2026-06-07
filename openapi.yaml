@@ -1,0 +1,140 @@
+openapi: 3.1.0
+
+info:
+  title: Forager Webhook API
+  version: "1.0"
+  description: >
+    Machine-readable schema for events that Forager delivers to configured webhook endpoints.
+    Forager does not expose a public REST API — all outbound data is delivered via webhooks
+    triggered by attestation events.
+  contact:
+    name: Forager Support
+    email: support@harbinge.rs
+
+webhooks:
+  attestation:
+    post:
+      operationId: attestationEvent
+      summary: Attestation recorded
+      description: >
+        Delivered to every enabled webhook endpoint immediately after an attestation is written.
+        An attestation is created whenever a field tech scans a barcode and the app evaluates
+        the result against the asset's recorded location.
+
+        The request body is a JSON object populated from the payload template you configure in
+        Webhook Settings. The canonical template (recommended) produces the schema documented here.
+        Custom templates may produce different shapes — the field definitions below describe the
+        values available for substitution.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AttestationPayload'
+            examples:
+              match:
+                summary: Location confirmed — asset found where expected
+                value:
+                  event: attestation
+                  asset_tag: BIO-4721
+                  result: match
+                  location_path: "Memorial Hospital / Floor 3 / Biomedical Storage"
+                  room: Biomedical Storage
+                  tech_name: Maria Ortega
+                  confirmed_at: "2026-06-07T14:23:11Z"
+              mismatch_confirmed:
+                summary: Mismatch — tech confirmed asset is in the wrong location
+                value:
+                  event: attestation
+                  asset_tag: BIO-4721
+                  result: mismatch_confirmed
+                  location_path: "Memorial Hospital / Floor 2 / OR Suite 4"
+                  room: OR Suite 4
+                  tech_name: James Kowalski
+                  confirmed_at: "2026-06-07T09:07:44Z"
+              new_asset:
+                summary: New asset — barcode not in registry, auto-created
+                value:
+                  event: attestation
+                  asset_tag: BIO-9901
+                  result: new_asset
+                  location_path: "Memorial Hospital / Floor 1 / Loading Dock"
+                  room: Loading Dock
+                  tech_name: Maria Ortega
+                  confirmed_at: "2026-06-07T11:55:02Z"
+      responses:
+        '2XX':
+          description: >
+            Any 2xx status is treated as successful delivery. Forager does not retry on success.
+        '4XX':
+          description: >
+            Logged as a delivery failure. Forager does not currently retry failed deliveries —
+            re-enable the webhook to resume delivery for new attestations.
+        '5XX':
+          description: Logged as a delivery failure. Same retry behavior as 4xx.
+
+components:
+  schemas:
+    AttestationPayload:
+      type: object
+      description: >
+        The JSON body delivered to your webhook endpoint. All fields are strings.
+        Location is expressed as a human-readable path — Forager has no GPS coordinates.
+      required:
+        - event
+        - asset_tag
+        - result
+        - location_path
+        - room
+        - tech_name
+        - confirmed_at
+      properties:
+        event:
+          type: string
+          const: attestation
+          description: Always "attestation". Useful for routing if your endpoint receives multiple event types.
+          example: attestation
+        asset_tag:
+          type: string
+          description: >
+            The barcode value of the scanned asset. Matches the `asset_tag` column in Forager's
+            asset registry and in your CMDB.
+          example: BIO-4721
+        result:
+          type: string
+          enum:
+            - match
+            - mismatch_confirmed
+            - mismatch_dismissed
+            - new_asset
+          description: |
+            The outcome of the attestation evaluation:
+            - `match` — the tech's current location matched the asset's recorded location.
+            - `mismatch_confirmed` — the tech confirmed the asset is present but in the wrong location. The asset's location record is updated.
+            - `mismatch_dismissed` — the tech dismissed the mismatch prompt without confirming. No location update.
+            - `new_asset` — the scanned barcode was not in Forager's registry. A new asset record was auto-created at the tech's current location.
+          example: match
+        location_path:
+          type: string
+          description: >
+            Full location breadcrumb from the root node to the room where the tech was standing
+            at the time of the scan. Segments are separated by " / ". Forager's location data
+            is building/floor/room — there are no GPS coordinates.
+          example: "Memorial Hospital / Floor 3 / Biomedical Storage"
+        room:
+          type: string
+          description: >
+            The leaf node of `location_path` — the room name only. Convenient for systems that
+            store location as a single room field rather than a full path.
+          example: Biomedical Storage
+        tech_name:
+          type: string
+          description: The display name of the team member who performed the scan.
+          example: Maria Ortega
+        confirmed_at:
+          type: string
+          format: date-time
+          description: >
+            ISO 8601 UTC timestamp of when the attestation was written to the database.
+            Format: YYYY-MM-DDTHH:MM:SSZ.
+          example: "2026-06-07T14:23:11Z"

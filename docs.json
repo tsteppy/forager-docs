@@ -96,6 +96,7 @@
       {
         "group": "Integrations",
         "pages": [
+          "integrations/webhook-reference",
           "integrations/servicenow-scripted-rest-api",
           "integrations/servicenow-import-sets"
         ]

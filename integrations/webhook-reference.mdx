@@ -1,0 +1,137 @@
+---
+title: "Webhook Reference"
+description: "Schema, field definitions, and delivery behavior for Forager attestation events"
+---
+
+## Overview
+
+Forager does not expose a public REST API. All outbound data is delivered as **webhook events** — HTTP POST requests sent to your configured endpoint immediately after each attestation is recorded.
+
+Download the machine-readable spec: [`openapi.yaml`](https://docs.harbinge.rs/openapi.yaml)
+
+---
+
+## Event: `attestation`
+
+Triggered whenever a field tech scans a barcode and the app evaluates the result. One event per scan.
+
+### When it fires
+
+| Trigger | `result` value |
+|---|---|
+| Tech was in the asset's recorded location | `match` |
+| Tech confirmed the asset is in a different location | `mismatch_confirmed` |
+| Tech dismissed the mismatch prompt | `mismatch_dismissed` |
+| Scanned barcode was not in the registry — new asset auto-created | `new_asset` |
+
+---
+
+## Payload schema
+
+The request body is `application/json`. All fields are strings.
+
+```json
+{
+  "event": "attestation",
+  "asset_tag": "BIO-4721",
+  "result": "match",
+  "location_path": "Memorial Hospital / Floor 3 / Biomedical Storage",
+  "room": "Biomedical Storage",
+  "tech_name": "Maria Ortega",
+  "confirmed_at": "2026-06-07T14:23:11Z"
+}
+```
+
+### Field definitions
+
+| Field | Type | Description |
+|---|---|---|
+| `event` | `string` | Always `"attestation"`. Useful for routing if your endpoint receives multiple event types. |
+| `asset_tag` | `string` | Barcode value of the scanned device. Matches `asset_tag` in Forager's registry and in your CMDB. |
+| `result` | `string` (enum) | Outcome — see values below. |
+| `location_path` | `string` | Full location breadcrumb, slash-separated. Example: `"Memorial Hospital / Floor 3 / Biomedical Storage"`. Forager's location is building/floor/room — no GPS coordinates. |
+| `room` | `string` | Leaf node of `location_path`. The room name only. Convenient for systems that store location as a single field. |
+| `tech_name` | `string` | Display name of the team member who performed the scan. |
+| `confirmed_at` | `string` (ISO 8601) | UTC timestamp of when the attestation was written. Format: `YYYY-MM-DDTHH:MM:SSZ`. |
+
+### `result` values
+
+| Value | Meaning |
+|---|---|
+| `match` | Asset found in its recorded location. No location update needed. |
+| `mismatch_confirmed` | Asset found in a different location. Tech confirmed — Forager's location record is updated to the tech's current location. |
+| `mismatch_dismissed` | Tech dismissed the mismatch dialog. Attestation is recorded, but the asset's location record is unchanged. |
+| `new_asset` | Barcode was not in Forager's registry. A new asset record was created at the tech's current location. |
+
+---
+
+## Delivery behavior
+
+| Property | Value |
+|---|---|
+| **Method** | `POST` |
+| **Content-Type** | `application/json` |
+| **Trigger** | Immediate — fired synchronously after each attestation write |
+| **Retry** | None — Forager does not retry failed deliveries |
+| **Success** | Any `2xx` response |
+| **Timeout** | 10 seconds |
+| **Ordering** | Not guaranteed — multiple techs scanning simultaneously may deliver events out of order |
+
+<Note>
+  Forager does not queue events or retry on failure. If your endpoint is down when an attestation fires, that event is lost. Design for idempotency — the same `asset_tag` + `confirmed_at` pair uniquely identifies an event if you need deduplication.
+</Note>
+
+---
+
+## Authentication
+
+Forager supports static credential injection via a custom HTTP header. Configure this in Webhook Settings:
+
+| Field | Example |
+|---|---|
+| **Secret Header** | `Authorization` or `X-Api-Key` |
+| **Secret Value** | `Bearer eyJ...` or `token abc123` |
+
+Forager sends the header verbatim on every request. Your endpoint should validate it before processing the payload.
+
+---
+
+## Canonical payload template
+
+When configuring your webhook in Forager, use this template to produce the documented schema above:
+
+```json
+{
+  "event": "attestation",
+  "asset_tag": "{{asset_tag}}",
+  "result": "{{type}}",
+  "location_path": "{{location_path}}",
+  "room": "{{anchor_name}}",
+  "tech_name": "{{updated_by}}",
+  "confirmed_at": "{{timestamp}}"
+}
+```
+
+### Available template variables
+
+| Variable | Resolves to |
+|---|---|
+| `{{asset_tag}}` | Barcode of the scanned device |
+| `{{type}}` | `result` value (`match`, `mismatch_confirmed`, etc.) |
+| `{{location_path}}` | Full breadcrumb path |
+| `{{anchor_name}}` | Room name (last segment of `location_path`) |
+| `{{updated_by}}` | Tech's display name |
+| `{{timestamp}}` | ISO 8601 UTC timestamp |
+
+---
+
+## Integration guides
+
+<CardGroup cols={2}>
+  <Card title="ServiceNow — Scripted REST API" icon="code" href="/integrations/servicenow-scripted-rest-api">
+    Real-time CI location updates via ServiceNow's scripted REST endpoint
+  </Card>
+  <Card title="ServiceNow — Import Sets" icon="table" href="/integrations/servicenow-import-sets">
+    Staged CMDB writes via the Import Set API
+  </Card>
+</CardGroup>
