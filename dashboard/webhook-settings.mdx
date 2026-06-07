@@ -11,29 +11,53 @@ Webhook configuration is in the **Forager Android app**, not the web dashboard. 
 
 From the home screen: tap your profile avatar → **Admin** → expand the **Webhooks** section.
 
+## Where to configure
+
+Webhooks can be configured from two places:
+
+- **Web dashboard** (recommended): Dashboard → Settings → Webhooks
+- **Android app**: Profile → Admin → Webhooks section
+
+The web dashboard offers the full configuration experience including platform selection and payload preview.
+
 ## Adding a webhook
 
 <Steps>
-  <Step title="Open the Webhooks section">
-    In the Admin screen, tap the **Webhooks** section header to expand it.
-  </Step>
-  <Step title="Tap Add Webhook">
-    Tap the **Add Webhook** button at the bottom of the section.
+  <Step title="Open Webhook Settings">
+    In the web dashboard, go to **Settings** and scroll to the **Webhooks** section. Click **Add Webhook**.
   </Step>
   <Step title="Enter the endpoint details">
     | Field | What to enter |
     |---|---|
-    | **Name** | A label for your own reference, e.g. `ServiceNow Production` |
-    | **URL** | The full HTTPS URL Forager will POST to on every attestation |
-    | **Secret Header** | The HTTP header used for authentication, e.g. `X-ServiceNow-Token` or `Authorization` |
-    | **Secret Value** | The credential value, e.g. `Basic abc123...` or `Bearer token...` |
+    | **Name** | A label for your own reference, e.g. `Freshservice Production` |
+    | **Endpoint URL** | The full HTTPS URL Forager will POST to on every attestation |
+    | **Auth Header** | The HTTP header used for authentication, e.g. `Authorization` |
+    | **Auth Value** | The credential value, e.g. `Bearer token...` |
   </Step>
-  <Step title="Tap Add">
-    Tap **Add**. The webhook is active immediately. Every attestation written from this point forward will trigger a POST to the configured URL.
+  <Step title="Select a target platform">
+    Choose your ITSM/CMDB from the **Target Platform** dropdown. Forager will pre-format the payload for that platform — no custom template needed. A payload preview appears so you can see exactly what your endpoint will receive.
+
+    Select **Custom template** to write your own JSON payload using the available template variables.
+  </Step>
+  <Step title="Save">
+    Click **Add Webhook**. The webhook is active immediately.
   </Step>
 </Steps>
 
-## Available payload variables
+## Supported platforms
+
+| Platform | Pre-built payload | Field mapping guide |
+|---|---|---|
+| Freshservice | Yes | [Freshservice](/integrations/freshservice) |
+| JSM Assets (Jira) | Yes | [JSM Assets](/integrations/jira-assets) |
+| BMC Helix ITSM | Yes | [BMC Helix](/integrations/bmchelix) |
+| Ivanti Neurons | Yes | [Ivanti](/integrations/ivanti) |
+| ServiceNow | Custom template | [Scripted REST API](/integrations/servicenow-scripted-rest-api) |
+| Any other system | Custom template | [Webhook Reference](/integrations/webhook-reference) |
+
+## Custom template variables
+
+When using a custom template, these variables are available:
 
 | Variable | Description |
 |---|---|

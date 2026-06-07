@@ -1,0 +1,114 @@
+---
+title: "BMC Helix ITSM"
+description: "Push Forager attestation events into BMC Helix Configuration Items"
+---
+
+## Overview
+
+BMC Helix ITSM stores physical assets as **Configuration Items** in the `AST:BMC_BaseElement` form. Forager can push location data to Helix CI records using the AR System REST API. A proxy handles authentication and record lookup.
+
+---
+
+## Field mapping
+
+| Forager field | BMC Helix CI field | Notes |
+|---|---|---|
+| `values["Asset Tag"]` | `Tag Number` | Used to look up the CI record |
+| `values["Location"]` | `Location` | Text field — full breadcrumb |
+| `values["Last Scan By"]` | Custom field (e.g. `Forager_ConfirmedBy`) | Helix doesn't have a built-in "last confirmed by" field; use a custom field |
+| `values["Last Scan Time"]` | `Scan Date` or `Last_Inventory_Date` | Native Helix timestamp fields |
+| `values["Status"]` | Custom field (e.g. `Forager_Result`) | `match`, `mismatch_confirmed`, etc. |
+
+### BMC Helix payload (pre-built)
+
+When you select **BMC Helix ITSM** as the target platform in Webhook Settings, Forager sends this shape:
+
+```json
+{
+  "event": "forager.attestation",
+  "values": {
+    "Asset Tag": "BIO-4721",
+    "Location": "Memorial Hospital / Floor 3 / Biomedical Storage",
+    "Last Scan By": "Maria Ortega",
+    "Last Scan Time": "2026-06-07T14:23:11Z",
+    "Status": "match"
+  }
+}
+```
+
+---
+
+## Proxy setup
+
+### Prerequisites
+
+- BMC Helix instance URL (e.g. `https://yourcompany.onbmc.com`)
+- AR System user credentials with write access to `AST:BMC_BaseElement`
+- JWT token endpoint: `/api/jwt/login`
+
+### Node.js proxy
+
+```js
+const HELIX_URL  = process.env.HELIX_URL   // https://yourcompany.onbmc.com
+const HELIX_USER = process.env.HELIX_USER
+const HELIX_PASS = process.env.HELIX_PASS
+
+async function getToken() {
+  const res = await fetch(`${HELIX_URL}/api/jwt/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ username: HELIX_USER, password: HELIX_PASS }),
+  })
+  const { token } = await res.json()
+  return token
+}
+
+export default async function handler(req, res) {
+  const { values } = req.body
+  const assetTag = values['Asset Tag']
+  const token = await getToken()
+
+  const headers = {
+    Authorization: `AR-JWT ${token}`,
+    'Content-Type': 'application/json',
+  }
+
+  // 1. Look up CI by asset tag
+  const searchRes = await fetch(
+    `${HELIX_URL}/api/arsys/v1/entry/AST:BMC_BaseElement?q='Tag+Number'="${encodeURIComponent(assetTag)}"&fields=values(Request ID)`,
+    { headers }
+  )
+  const { entries } = await searchRes.json()
+  if (!entries?.length) return res.status(404).json({ error: 'CI not found' })
+
+  const requestId = entries[0].values['Request ID']
+
+  // 2. Update CI fields
+  await fetch(`${HELIX_URL}/api/arsys/v1/entry/AST:BMC_BaseElement/${encodeURIComponent(requestId)}`, {
+    method: 'PUT',
+    headers,
+    body: JSON.stringify({
+      values: {
+        Location:         values['Location'],
+        Forager_ConfirmedBy: values['Last Scan By'],
+        Last_Inventory_Date: values['Last Scan Time'],
+        Forager_Result:   values['Status'],
+      },
+    }),
+  })
+
+  res.status(200).json({ ok: true })
+}
+```
+
+<Note>
+  BMC Helix field names in the AR System API use underscore format internally (e.g. `Tag_Number`, `Last_Inventory_Date`). Verify exact field names against your instance's schema using the AR System API Explorer at `/arsys/shared/devstudio/`.
+</Note>
+
+### Webhook configuration in Forager
+
+1. Go to **Dashboard → Settings → Webhooks** → **Add Webhook**
+2. **Name:** `BMC Helix`
+3. **Endpoint URL:** your proxy URL
+4. **Target Platform:** `BMC Helix ITSM`
+5. **Auth Header / Value:** credential your proxy expects

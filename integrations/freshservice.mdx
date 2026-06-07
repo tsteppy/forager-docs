@@ -1,0 +1,108 @@
+---
+title: "Freshservice Integration"
+description: "Push Forager attestation events into Freshservice Asset Management"
+---
+
+## Overview
+
+Freshservice stores assets in its Asset Management module. Forager can push location updates to Freshservice asset records every time a tech confirms a device's position. Because Freshservice's asset update API requires asset-specific record IDs, you need a lightweight proxy — a simple serverless function that looks up the asset by tag and calls the Freshservice API on Forager's behalf.
+
+---
+
+## Field mapping
+
+| Forager field | Freshservice field | Notes |
+|---|---|---|
+| `asset_tag` | `asset_tag` | Direct match — Freshservice assets have an `asset_tag` field used for lookup |
+| `location` | Custom field (e.g. `forager_location`) | Freshservice `location_id` is a foreign key; storing the text value in a custom field is simpler and more readable |
+| `room` | Custom field (e.g. `forager_room`) | Room name only — useful for single-field location display |
+| `discovered_by` | Custom field (e.g. `forager_confirmed_by`) | Tech display name |
+| `last_discovered_at` | `last_discovered_at` | Native Freshservice field for last scan timestamp — ISO 8601 |
+| `discovery_type` | Custom field (e.g. `forager_result`) | `match`, `mismatch_confirmed`, `mismatch_dismissed`, or `new_asset` |
+
+### Freshservice payload (pre-built)
+
+When you select **Freshservice** as the target platform in Webhook Settings, Forager sends this shape:
+
+```json
+{
+  "event": "forager.attestation",
+  "asset_tag": "BIO-4721",
+  "last_discovered_at": "2026-06-07T14:23:11Z",
+  "location": "Memorial Hospital / Floor 3 / Biomedical Storage",
+  "room": "Biomedical Storage",
+  "discovered_by": "Maria Ortega",
+  "discovery_type": "match"
+}
+```
+
+---
+
+## Proxy setup
+
+Your proxy receives Forager's payload and translates it into a Freshservice API call.
+
+### Prerequisites
+
+- Freshservice API key (Profile Settings → API → Your API Key)
+- Your Freshservice domain: `yourcompany.freshservice.com`
+- Custom fields created on your asset type: `forager_location`, `forager_room`, `forager_confirmed_by`, `forager_result` (all Text type)
+
+### Node.js proxy (Vercel / AWS Lambda / Cloudflare Workers)
+
+```js
+export default async function handler(req, res) {
+  const { asset_tag, last_discovered_at, location, room, discovered_by, discovery_type } = req.body
+
+  const FS_DOMAIN = process.env.FS_DOMAIN        // yourcompany.freshservice.com
+  const FS_API_KEY = process.env.FS_API_KEY
+  const auth = Buffer.from(`${FS_API_KEY}:X`).toString('base64')
+
+  // 1. Look up asset by tag
+  const searchRes = await fetch(
+    `https://${FS_DOMAIN}/api/v2/assets?search[asset_tag]=${encodeURIComponent(asset_tag)}`,
+    { headers: { Authorization: `Basic ${auth}` } }
+  )
+  const { assets } = await searchRes.json()
+  if (!assets?.length) return res.status(404).json({ error: 'Asset not found' })
+
+  const displayId = assets[0].display_id
+
+  // 2. Update the asset
+  await fetch(`https://${FS_DOMAIN}/api/v2/assets/${displayId}`, {
+    method: 'PUT',
+    headers: { Authorization: `Basic ${auth}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      asset: {
+        last_discovered_at,
+        custom_fields: {
+          forager_location: location,
+          forager_room: room,
+          forager_confirmed_by: discovered_by,
+          forager_result: discovery_type,
+        },
+      },
+    }),
+  })
+
+  res.status(200).json({ ok: true })
+}
+```
+
+### Webhook configuration in Forager
+
+1. Go to **Dashboard → Settings → Webhooks** → **Add Webhook**
+2. **Name:** `Freshservice`
+3. **Endpoint URL:** your proxy URL (e.g. `https://your-proxy.vercel.app/api/forager`)
+4. **Target Platform:** `Freshservice`
+5. **Auth Header / Value:** configure to match your proxy's expected credential
+
+---
+
+## Tip: filter on `discovery_type`
+
+To avoid writing stale data on mismatches you haven't resolved, only update the asset location when `discovery_type === 'match'`:
+
+```js
+if (discovery_type !== 'match') return res.status(200).json({ skipped: true })
+```

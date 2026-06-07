@@ -97,6 +97,10 @@
         "group": "Integrations",
         "pages": [
           "integrations/webhook-reference",
+          "integrations/freshservice",
+          "integrations/jira-assets",
+          "integrations/bmchelix",
+          "integrations/ivanti",
           "integrations/servicenow-scripted-rest-api",
           "integrations/servicenow-import-sets"
         ]

@@ -1,0 +1,116 @@
+---
+title: "Ivanti Neurons for ITSM"
+description: "Push Forager attestation events into Ivanti Neurons Configuration Items"
+---
+
+## Overview
+
+Ivanti Neurons for ITSM (formerly Ivanti Service Manager / HEAT) stores assets as Configuration Items. Forager can push location data to CI records using the Ivanti REST API. A proxy handles authentication and record lookup.
+
+---
+
+## Field mapping
+
+| Forager field | Ivanti CI field | Notes |
+|---|---|---|
+| `AssetTag` | `Asset Tag` | Used to look up the CI record |
+| `Location` | `Location` | Full breadcrumb — store in the CI's Location text field |
+| `Room` | Custom field (e.g. `ForagerRoom`) | Room name only |
+| `LastConfirmedBy` | Custom field (e.g. `ForagerConfirmedBy`) | Tech display name |
+| `LastConfirmedAt` | `Last Scan Date` or custom field | ISO 8601 timestamp |
+| `EventType` | Custom field (e.g. `ForagerResult`) | `match`, `mismatch_confirmed`, etc. |
+
+### Ivanti payload (pre-built)
+
+When you select **Ivanti Neurons** as the target platform in Webhook Settings, Forager sends this shape:
+
+```json
+{
+  "event": "forager.attestation",
+  "AssetTag": "BIO-4721",
+  "Location": "Memorial Hospital / Floor 3 / Biomedical Storage",
+  "Room": "Biomedical Storage",
+  "LastConfirmedBy": "Maria Ortega",
+  "LastConfirmedAt": "2026-06-07T14:23:11Z",
+  "EventType": "match"
+}
+```
+
+---
+
+## Proxy setup
+
+### Prerequisites
+
+- Ivanti Neurons tenant URL (e.g. `https://yourcompany.ivanti.com`)
+- API client credentials (tenant admin → API Clients)
+- OAuth 2.0 token endpoint
+
+### Node.js proxy
+
+```js
+const IVANTI_URL    = process.env.IVANTI_URL   // https://yourcompany.ivanti.com
+const CLIENT_ID     = process.env.IVANTI_CLIENT_ID
+const CLIENT_SECRET = process.env.IVANTI_CLIENT_SECRET
+
+async function getToken() {
+  const res = await fetch(`${IVANTI_URL}/api/v1/oauth/token`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      grant_type: 'client_credentials',
+      client_id: CLIENT_ID,
+      client_secret: CLIENT_SECRET,
+    }),
+  })
+  const { access_token } = await res.json()
+  return access_token
+}
+
+export default async function handler(req, res) {
+  const { AssetTag, Location, Room, LastConfirmedBy, LastConfirmedAt, EventType } = req.body
+  const token = await getToken()
+
+  const headers = {
+    Authorization: `Bearer ${token}`,
+    'Content-Type': 'application/json',
+  }
+
+  // 1. Find CI by asset tag
+  const searchRes = await fetch(
+    `${IVANTI_URL}/api/v1/businessobjects/CI?filter=AssetTag eq '${encodeURIComponent(AssetTag)}'&select=RecId`,
+    { headers }
+  )
+  const { value } = await searchRes.json()
+  if (!value?.length) return res.status(404).json({ error: 'CI not found' })
+
+  const recId = value[0].RecId
+
+  // 2. Update CI
+  await fetch(`${IVANTI_URL}/api/v1/businessobjects/CI/${recId}`, {
+    method: 'PATCH',
+    headers,
+    body: JSON.stringify({
+      Location,
+      ForagerRoom:         Room,
+      ForagerConfirmedBy:  LastConfirmedBy,
+      ForagerLastScan:     LastConfirmedAt,
+      ForagerResult:       EventType,
+    }),
+  })
+
+  res.status(200).json({ ok: true })
+}
+```
+
+<Note>
+  Ivanti field names in the REST API use the internal name defined in the business object schema (e.g. `ForagerRoom` not `Forager Room`). Verify internal names in Ivanti Studio → Business Objects → CI → Fields.
+</Note>
+
+### Webhook configuration in Forager
+
+1. Go to **Dashboard → Settings → Webhooks** → **Add Webhook**
+2. **Name:** `Ivanti Neurons`
+3. **Endpoint URL:** your proxy URL
+4. **Target Platform:** `Ivanti Neurons`
+5. **Auth Header / Value:** credential your proxy expects

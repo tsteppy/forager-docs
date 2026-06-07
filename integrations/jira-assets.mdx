@@ -1,0 +1,116 @@
+---
+title: "Jira Service Management Assets"
+description: "Push Forager attestation events into JSM Assets (formerly Insight)"
+---
+
+## Overview
+
+JSM Assets (formerly Atlassian Insight) stores configuration items as **objects** with user-defined attributes. Because object schemas are custom, you need to map Forager's fields to your specific attribute IDs. A lightweight proxy handles the lookup and attribute update.
+
+---
+
+## Field mapping
+
+JSM Assets uses a flexible attribute model — attribute names and IDs depend on your object type schema. The recommended attribute names for Forager data:
+
+| Forager field | JSM Assets attribute | Notes |
+|---|---|---|
+| `asset_tag` | `Name` or `Asset Tag` | Used to look up the object by AQL query |
+| `attributes.Location` | `Location` | Full breadcrumb path |
+| `attributes.Room` | `Room` | Room name only |
+| `attributes["Last Confirmed By"]` | `Last Confirmed By` | Tech display name |
+| `attributes["Last Confirmed At"]` | `Last Confirmed At` | ISO 8601 timestamp |
+| `attributes["Forager Status"]` | `Forager Status` | `match`, `mismatch_confirmed`, etc. |
+
+### JSM Assets payload (pre-built)
+
+When you select **JSM Assets (Jira)** as the target platform in Webhook Settings, Forager sends this shape:
+
+```json
+{
+  "event": "forager.attestation",
+  "asset_tag": "BIO-4721",
+  "attributes": {
+    "Location": "Memorial Hospital / Floor 3 / Biomedical Storage",
+    "Room": "Biomedical Storage",
+    "Last Confirmed By": "Maria Ortega",
+    "Last Confirmed At": "2026-06-07T14:23:11Z",
+    "Forager Status": "match"
+  }
+}
+```
+
+---
+
+## Proxy setup
+
+### Prerequisites
+
+- Atlassian API token (account.atlassian.com → Security → API tokens)
+- Your Atlassian account email
+- Your JSM workspace ID and object type ID (from JSM Assets settings)
+- Attribute IDs for Location, Room, Last Confirmed By, Last Confirmed At, Forager Status
+
+<Tip>
+  Find attribute IDs in JSM Assets: **Object Types** → select your type → **Attributes** tab → hover over the attribute name to see its ID in the URL.
+</Tip>
+
+### Node.js proxy
+
+```js
+const ATLASSIAN_EMAIL = process.env.ATLASSIAN_EMAIL
+const ATLASSIAN_TOKEN = process.env.ATLASSIAN_TOKEN
+const WORKSPACE_ID    = process.env.JSM_WORKSPACE_ID
+
+// Your schema's attribute IDs — update these for your workspace
+const ATTR = {
+  location:       process.env.ATTR_LOCATION,
+  room:           process.env.ATTR_ROOM,
+  confirmedBy:    process.env.ATTR_CONFIRMED_BY,
+  confirmedAt:    process.env.ATTR_CONFIRMED_AT,
+  foragerStatus:  process.env.ATTR_FORAGER_STATUS,
+}
+
+const auth = Buffer.from(`${ATLASSIAN_EMAIL}:${ATLASSIAN_TOKEN}`).toString('base64')
+const baseUrl = `https://api.atlassian.com/jsm/assets/workspace/${WORKSPACE_ID}`
+
+export default async function handler(req, res) {
+  const { asset_tag, attributes } = req.body
+
+  // 1. Find object by asset tag via AQL
+  const aqlRes = await fetch(
+    `${baseUrl}/v1/object/aql?qlQuery=${encodeURIComponent(`"Asset Tag" = "${asset_tag}"`)}`,
+    { headers: { Authorization: `Basic ${auth}` } }
+  )
+  const { values } = await aqlRes.json()
+  if (!values?.length) return res.status(404).json({ error: 'Object not found' })
+
+  const objectId = values[0].id
+
+  // 2. Update the object's attributes
+  await fetch(`${baseUrl}/v1/object/${objectId}`, {
+    method: 'PUT',
+    headers: { Authorization: `Basic ${auth}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      objectTypeId: process.env.OBJECT_TYPE_ID,
+      attributes: [
+        { objectTypeAttributeId: ATTR.location,      objectAttributeValues: [{ value: attributes.Location }] },
+        { objectTypeAttributeId: ATTR.room,          objectAttributeValues: [{ value: attributes.Room }] },
+        { objectTypeAttributeId: ATTR.confirmedBy,   objectAttributeValues: [{ value: attributes['Last Confirmed By'] }] },
+        { objectTypeAttributeId: ATTR.confirmedAt,   objectAttributeValues: [{ value: attributes['Last Confirmed At'] }] },
+        { objectTypeAttributeId: ATTR.foragerStatus, objectAttributeValues: [{ value: attributes['Forager Status'] }] },
+      ],
+    }),
+  })
+
+  res.status(200).json({ ok: true })
+}
+```
+
+### Webhook configuration in Forager
+
+1. Go to **Dashboard → Settings → Webhooks** → **Add Webhook**
+2. **Name:** `JSM Assets`
+3. **Endpoint URL:** your proxy URL
+4. **Target Platform:** `JSM Assets (Jira)`
+5. **Auth Header / Value:** credential your proxy expects
