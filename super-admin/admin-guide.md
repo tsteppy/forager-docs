@@ -17,6 +17,7 @@ As a Forager platform admin, you are responsible for the full lifecycle of a cus
 - [Pilot onboarding runbook](#pilot-onboarding-runbook) — end-to-end from first contact to first attestation
 - [Billing management](#billing-management) — subscription status, dunning, grace period, suspension
 - [Sprint management](#sprint-management) — creating and managing tech competitions
+- [APK Releases](#apk-releases--self-hosted-customers) — building and distributing self-hosted APKs
 - [Audit log](#audit-log) — reviewing admin action history
 - [Self-hosting](#self-hosting) — enterprise on-premises deployments
 
@@ -392,6 +393,61 @@ Open **Admin → Sprints** → find the LIVE sprint → tap **End Early**. The e
 - **Schedule the next sprint before the current one ends** to avoid a gap with no visible banner
 - **Target stale assets** — 🔥 10-point assets are devices not confirmed in 90+ days; a sprint focused on clearing those is more valuable than one that re-confirms recently-seen devices
 - **Name sprints clearly** — techs see the name on their home screen throughout the competition
+
+---
+
+## APK Releases — self-hosted customers
+
+Self-hosted customers receive a custom-compiled APK with their Supabase credentials and a license expiry date baked in. The **APK Releases** panel at the bottom of `/admin` tracks every build and lets you generate download links on demand.
+
+### Building an APK
+
+APK builds run as a GitHub Actions workflow in the `forager` repository. To trigger a build:
+
+1. Go to **GitHub → forager repo → Actions → Build Self-Hosted APK → Run workflow**
+2. Fill in the four inputs:
+
+| Input | Format | Notes |
+|---|---|---|
+| `customer_id` | `lowercase-kebab-case` | Used in the APK filename and storage path. Use a short, stable identifier — e.g. `acme-health`. |
+| `supabase_url` | `https://<ref>.supabase.co` | The customer's Supabase project URL |
+| `supabase_anon_key` | JWT string | The customer's Supabase anon key |
+| `license_expiry` | `YYYY-MM-DD` | Hard-coded expiry date. Typically 1 year from deployment. |
+
+3. Click **Run workflow**. The build takes 5–10 minutes.
+
+On success:
+- The signed APK is uploaded to the `apk-releases` Supabase Storage bucket at `apk-releases/<customer_id>/v<version>/<filename>.apk`
+- A row is inserted into the `customer_apks` table
+- The APK Releases panel in `/admin` shows the new build
+
+**Required GitHub Actions secrets** (one-time setup, already configured in the repo):
+`RELEASE_KEYSTORE_BASE64`, `RELEASE_STORE_PASSWORD`, `RELEASE_KEY_ALIAS`, `RELEASE_KEY_PASSWORD`, `STADIA_API_KEY`, `HARBINGRS_SUPABASE_URL`, `HARBINGRS_SERVICE_ROLE_KEY`
+
+### Generating a download link
+
+APKs in Supabase Storage are private — customers cannot access them directly by URL. Generate a 24-hour signed download link from the APK Releases panel:
+
+1. In `/admin`, scroll to **APK Releases — Self-Hosted Customers**
+2. Find the row for the customer and build version
+3. Click **Get Link** — the signed URL is generated and copied to your clipboard automatically
+4. Paste the URL into an email to the customer
+
+The link expires after 24 hours. If the customer lets it expire, click **Get Link** again — a new link is generated from the same APK with no rebuild needed. The **Sent** column records when you last generated a link.
+
+### License expiry badges
+
+| Badge | Meaning |
+|---|---|
+| **Active** (green) | License expires more than 30 days from today |
+| **Expires in Nd** (amber) | License expires within 30 days — arrange renewal |
+| **Expired** (red) | License has passed — the customer's app is locked. Build a renewal APK immediately. |
+
+### Renewal builds
+
+When a customer's license is approaching expiry, build a new APK with an updated `license_expiry` date. Use the same `customer_id` and the same Supabase credentials — only the expiry date changes. The storage path includes the version number so there is no collision with prior builds.
+
+Notify the customer at least one week before expiry. The Forager app shows a push notification to field techs starting 7 days before expiry.
 
 ---
 

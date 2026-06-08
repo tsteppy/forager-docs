@@ -305,21 +305,48 @@ The web dashboard is a Next.js application.
 
 ## Step 7 — Get Your Custom Android APK
 
-The Android app has your Supabase URL and anon key compiled into the binary. You cannot use the standard APK from the Hiverise downloads page.
+The Android app has your Supabase URL and anon key compiled into the binary. You cannot use the standard APK from the Hiverise downloads page. Hiverise builds a signed APK for your deployment using an automated pipeline — no manual compilation step is required on your end.
 
 <Steps>
-  <Step title="Send Hiverise your credentials">
+  <Step title="Contact Hiverise to trigger your build">
     Email [support@harbinge.rs](mailto:support@harbinge.rs) with:
     - Your `SUPABASE_URL`
     - Your `SUPABASE_ANON_KEY`
-    - Your organisation name (used in the app's build config)
+    - Your organisation name or a short identifier (used as the `customer_id` in your build)
+    - Your desired **license expiry date** in `YYYY-MM-DD` format
 
-    Hiverise will build, sign, and return a custom APK within one business day.
+    The license expiry date determines how long your APK will function. After the expiry date, the app displays a full-screen lock screen and blocks all access until a new APK is installed. Choose a date aligned with your contract term — typically one year from deployment.
+  </Step>
+  <Step title="Receive and install your download link">
+    Hiverise will trigger the build pipeline and email you a 24-hour signed download link once the APK is ready (typically within a few hours). The APK filename will be in the format `forager-<customer-id>-v<version>.apk`.
+
+    Download the APK before the link expires. If the link expires, contact support — a new link can be generated from the same build at any time.
   </Step>
   <Step title="Distribute the APK">
-    Distribute the APK to your field techs via your MDM solution, an internal file share, or direct download from a URL you control. Installation instructions are the same as the standard APK — see the [Downloads page](/downloads) for sideload instructions.
+    Distribute the APK to your field techs via:
+    - Your MDM solution (recommended for fleet management)
+    - An internal file share or intranet download page
+    - Direct side-load using `adb install forager-<customer-id>-v<version>.apk`
+
+    Installation instructions are the same as the standard APK — see the [Downloads page](/downloads) for sideload instructions.
   </Step>
 </Steps>
+
+### License expiry
+
+Each self-hosted APK is built with a hard-coded expiry date. When the app launches after the expiry date:
+
+- A full-screen lock screen appears with the expiry date and instructions to contact support
+- All navigation is blocked — the back button does not dismiss the screen
+- The lock applies on every launch, even if the device is offline
+
+The app also notifies field techs proactively: a push notification appears 7 days before expiry and again each day after expiry until the APK is replaced.
+
+**Before your license expires:** Contact [support@harbinge.rs](mailto:support@harbinge.rs) to arrange a new APK build. Hiverise will provide a new signed APK with an updated expiry date. Distribute it the same way as your initial deployment — installing the update over the existing APK via MDM or sideload is sufficient.
+
+<Warning>
+  There is no grace period on the expiry date. The lock screen activates the day after expiry. Request your renewal APK at least one week before expiry to allow time for distribution.
+</Warning>
 
 ---
 
