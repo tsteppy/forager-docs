@@ -107,9 +107,9 @@ These are planned but not yet in place. They must be addressed before the SOC 2 
 
 | Control | Priority | Status |
 |---|---|---|
-| Incident response plan | High | Not documented |
-| Vendor risk assessments (Supabase, Vercel, Cloudflare, Backblaze) | High | Not documented |
-| Supabase BAA (required for healthcare customer data) | High | Status unknown — confirm |
+| Incident response plan | High | **Done** — see [Incident Response Plan](/compliance/incident-response-plan) |
+| Vendor risk assessments (Supabase, Vercel, Cloudflare, Backblaze) | High | **Done** — see [Vendor Risk Assessments](/compliance/vendor-risk-assessments) |
+| Supabase BAA (required if any customer use case involves PHI) | High | **Action required** — confirm use cases and execute BAA if needed |
 | Formal change management gates (PR review requirements) | Medium | Not enforced |
 | Session expiry and failed-login lockout policy | Medium | At Supabase defaults |
 | Credential rotation schedule | Medium | Not defined |
@@ -126,3 +126,4 @@ These are planned but not yet in place. They must be addressed before the SOC 2 
 | Date | Change |
 |---|---|
 | 2026-06-07 | Initial version. MFA enforcement, webhook Vault encryption, and audit log all shipped. |
+| 2026-06-07 | IR plan and vendor risk assessments documented. Supabase BAA action item flagged. |
