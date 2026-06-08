@@ -1,55 +1,74 @@
 ---
 title: "Ivanti Neurons for ITSM"
-description: "Push Forager attestation events into Ivanti Neurons Configuration Items"
+description: "Push Forager attestation events into Ivanti Neurons CI records to keep physical location data current without manual updates"
 ---
 
-## Overview
+Ivanti Neurons for ITSM (formerly Ivanti Service Manager / HEAT) stores assets and infrastructure as Configuration Items. When a tech confirms an asset's location in Forager, this integration updates the matching CI record in Ivanti — so every ticket referencing that asset shows its last physically verified location.
 
-Ivanti Neurons for ITSM (formerly Ivanti Service Manager / HEAT) stores assets as Configuration Items. Forager can push location data to CI records using the Ivanti REST API. A proxy handles authentication and record lookup.
+**Choose this approach if** your organization uses Ivanti Neurons for ITSM or Ivanti Service Manager and wants CI location data to stay current from normal field tech work.
 
----
+## What happens
 
-## Field mapping
-
-| Forager field | Ivanti CI field | Notes |
-|---|---|---|
-| `AssetTag` | `Asset Tag` | Used to look up the CI record |
-| `Location` | `Location` | Full breadcrumb — store in the CI's Location text field |
-| `Room` | Custom field (e.g. `ForagerRoom`) | Room name only |
-| `LastConfirmedBy` | Custom field (e.g. `ForagerConfirmedBy`) | Tech display name |
-| `LastConfirmedAt` | `Last Scan Date` or custom field | ISO 8601 timestamp |
-| `EventType` | Custom field (e.g. `ForagerResult`) | `match`, `mismatch_confirmed`, etc. |
-
-### Ivanti payload (pre-built)
-
-When you select **Ivanti Neurons** as the target platform in Webhook Settings, Forager sends this shape:
-
-```json
-{
-  "event": "forager.attestation",
-  "AssetTag": "BIO-4721",
-  "Location": "Memorial Hospital / Floor 3 / Biomedical Storage",
-  "Room": "Biomedical Storage",
-  "LastConfirmedBy": "Maria Ortega",
-  "LastConfirmedAt": "2026-06-07T14:23:11Z",
-  "EventType": "match"
-}
+```
+Tech scans NET-0088 in Wiring Closet 2W (Forager app)
+  → Attestation recorded in Forager
+  → Forager POSTs to your proxy endpoint
+  → Proxy authenticates to Ivanti, queries for CI by asset tag
+  → CI updated: Location, ForagerRoom, ForagerConfirmedBy, ForagerLastScan, ForagerResult
 ```
 
 ---
 
-## Proxy setup
+## Ivanti Neurons setup
 
-### Prerequisites
+### Step 1 — Create an API client
 
-- Ivanti Neurons tenant URL (e.g. `https://yourcompany.ivanti.com`)
-- API client credentials (tenant admin → API Clients)
-- OAuth 2.0 token endpoint
+Ivanti Neurons uses OAuth 2.0 client credentials for API access. You'll need to create a dedicated API client.
 
-### Node.js proxy
+1. Log in as a tenant administrator
+2. Go to **Admin → Security Controls → API Clients**
+3. Click **New API Client**
+4. Set:
+   - **Name:** `Forager Integration`
+   - **Scope:** `ConfigurationItemWrite` (or equivalent in your tenant)
+5. Save and copy the **Client ID** and **Client Secret** — you'll need both in the proxy
+
+<Note>
+  If your Ivanti instance doesn't show API Clients under Security Controls, look under **Admin → OAuth 2.0 Settings** or **Admin → REST API**. The location varies across Ivanti Neurons versions. Contact your Ivanti administrator if you can't locate it.
+</Note>
+
+### Step 2 — Add Forager fields to your CI business object
+
+Ivanti's CI business object schema is customizable. Add fields for Forager data:
+
+1. Go to **Admin → Studio** (or **Ivanti Studio** in the web console)
+2. Open **Business Objects → Configuration Item** (or your organization's equivalent CI type)
+3. Add these fields:
+
+| Field label | Internal name | Type | Notes |
+|---|---|---|---|
+| Forager Location | `ForagerLocation` | Text (500) | Full breadcrumb path |
+| Forager Room | `ForagerRoom` | Text (200) | Room name only |
+| Forager Confirmed By | `ForagerConfirmedBy` | Text (200) | Tech display name |
+| Forager Last Scan | `ForagerLastScan` | DateTime | ISO 8601 timestamp |
+| Forager Result | `ForagerResult` | Text (50) | `match`, `mismatch_confirmed`, etc. |
+
+4. **Publish** the schema changes
+
+<Warning>
+  Internal field names in Ivanti Studio must not contain spaces — use `ForagerLocation` not `Forager Location`. The REST API references internal names, not display labels. Note the exact internal names you set — they go directly into the proxy code.
+</Warning>
+
+---
+
+## Proxy deployment
+
+The proxy handles OAuth token acquisition and the two-step Ivanti API flow: query CI by asset tag, then update fields.
+
+### Create `api/forager.js`
 
 ```js
-const IVANTI_URL    = process.env.IVANTI_URL   // https://yourcompany.ivanti.com
+const IVANTI_URL    = process.env.IVANTI_URL    // https://yourcompany.ivanti.com
 const CLIENT_ID     = process.env.IVANTI_CLIENT_ID
 const CLIENT_SECRET = process.env.IVANTI_CLIENT_SECRET
 
@@ -63,13 +82,29 @@ async function getToken() {
       client_secret: CLIENT_SECRET,
     }),
   })
+  if (!res.ok) throw new Error(`Ivanti OAuth failed: ${res.status}`)
   const { access_token } = await res.json()
   return access_token
 }
 
 export default async function handler(req, res) {
+  // Validate shared secret
+  if (req.headers['x-forager-secret'] !== process.env.SHARED_SECRET) {
+    return res.status(401).json({ error: 'Unauthorized' })
+  }
+
   const { AssetTag, Location, Room, LastConfirmedBy, LastConfirmedAt, EventType } = req.body
-  const token = await getToken()
+  if (!AssetTag) {
+    return res.status(400).json({ error: 'AssetTag is required' })
+  }
+
+  let token
+  try {
+    token = await getToken()
+  } catch (err) {
+    console.error('Ivanti auth failed:', err.message)
+    return res.status(502).json({ error: 'Ivanti authentication failed' })
+  }
 
   const headers = {
     Authorization: `Bearer ${token}`,
@@ -77,40 +112,126 @@ export default async function handler(req, res) {
   }
 
   // 1. Find CI by asset tag
+  // OData filter syntax — adjust field name to match your CI schema's asset tag field
+  const filter = encodeURIComponent(`AssetTag eq '${AssetTag}'`)
   const searchRes = await fetch(
-    `${IVANTI_URL}/api/v1/businessobjects/CI?filter=AssetTag eq '${encodeURIComponent(AssetTag)}'&select=RecId`,
+    `${IVANTI_URL}/api/v1/businessobjects/CI?$filter=${filter}&$select=RecId`,
     { headers }
   )
+  if (!searchRes.ok) {
+    console.error('Ivanti search failed:', searchRes.status, await searchRes.text())
+    return res.status(502).json({ error: 'Ivanti CI lookup failed' })
+  }
   const { value } = await searchRes.json()
-  if (!value?.length) return res.status(404).json({ error: 'CI not found' })
+  if (!value?.length) {
+    console.warn('CI not found in Ivanti:', AssetTag)
+    return res.status(200).json({ skipped: true, reason: 'ci_not_found' })
+  }
 
   const recId = value[0].RecId
 
   // 2. Update CI
-  await fetch(`${IVANTI_URL}/api/v1/businessobjects/CI/${recId}`, {
-    method: 'PATCH',
-    headers,
-    body: JSON.stringify({
-      Location,
-      ForagerRoom:         Room,
-      ForagerConfirmedBy:  LastConfirmedBy,
-      ForagerLastScan:     LastConfirmedAt,
-      ForagerResult:       EventType,
-    }),
-  })
+  const updateRes = await fetch(
+    `${IVANTI_URL}/api/v1/businessobjects/CI/${encodeURIComponent(recId)}`,
+    {
+      method: 'PATCH',
+      headers,
+      body: JSON.stringify({
+        ForagerLocation:    Location,
+        ForagerRoom:        Room,
+        ForagerConfirmedBy: LastConfirmedBy,
+        ForagerLastScan:    LastConfirmedAt,
+        ForagerResult:      EventType,
+      }),
+    }
+  )
 
-  res.status(200).json({ ok: true })
+  if (!updateRes.ok) {
+    console.error('Ivanti update failed:', updateRes.status, await updateRes.text())
+    return res.status(502).json({ error: 'Ivanti CI update failed' })
+  }
+
+  return res.status(200).json({ ok: true, rec_id: recId })
 }
 ```
 
-<Note>
-  Ivanti field names in the REST API use the internal name defined in the business object schema (e.g. `ForagerRoom` not `Forager Room`). Verify internal names in Ivanti Studio → Business Objects → CI → Fields.
-</Note>
+### Environment variables
 
-### Webhook configuration in Forager
+```bash
+IVANTI_URL=https://yourcompany.ivanti.com
+IVANTI_CLIENT_ID=your_client_id
+IVANTI_CLIENT_SECRET=your_client_secret
+SHARED_SECRET=choose_a_random_string_here
+```
+
+### Deploy to Vercel
+
+```bash
+npx vercel --prod
+```
+
+Add all environment variables in **Project → Settings → Environment Variables**.
+
+---
+
+## Forager configuration
 
 1. Go to **Dashboard → Settings → Webhooks** → **Add Webhook**
-2. **Name:** `Ivanti Neurons`
-3. **Endpoint URL:** your proxy URL
-4. **Target Platform:** `Ivanti Neurons`
-5. **Auth Header / Value:** credential your proxy expects
+2. Fill in:
+
+| Field | Value |
+|---|---|
+| **Name** | `Ivanti Neurons` |
+| **Endpoint URL** | Your proxy URL + `/api/forager` |
+| **Target Platform** | `Ivanti Neurons` |
+| **Auth Header Name** | `X-Forager-Secret` |
+| **Auth Header Value** | Your `SHARED_SECRET` value |
+
+---
+
+## Testing
+
+```bash
+curl -X POST "https://your-proxy.vercel.app/api/forager" \
+  -H "Content-Type: application/json" \
+  -H "X-Forager-Secret: your_shared_secret" \
+  -d '{
+    "event": "forager.attestation",
+    "AssetTag": "NET-0088",
+    "Location": "Memorial Hospital / Floor 2 / Wiring Closet 2W",
+    "Room": "Wiring Closet 2W",
+    "LastConfirmedBy": "James Kowalski",
+    "LastConfirmedAt": "2026-06-07T14:23:11Z",
+    "EventType": "match"
+  }'
+```
+
+**Expected response:**
+```json
+{ "ok": true, "rec_id": "EC8B6A0C1EFD4C22B9F3A1D27E9C5010" }
+```
+
+Then open the CI record in Ivanti and verify the `ForagerLocation`, `ForagerConfirmedBy`, and `ForagerLastScan` fields.
+
+---
+
+## Troubleshooting
+
+| Symptom | Likely cause | Fix |
+|---|---|---|
+| `401` from proxy | Wrong `SHARED_SECRET` | Verify the header value in Forager matches `SHARED_SECRET` in the proxy |
+| `Ivanti OAuth failed: 401` | Bad client credentials | Test: `curl -X POST "IVANTI_URL/api/v1/oauth/token" -d "grant_type=client_credentials&client_id=...&client_secret=..."` |
+| `Ivanti OAuth failed: 403` | Scope insufficient | Ensure the API client has write access to the CI business object |
+| `skipped: ci_not_found` | OData filter doesn't match | Check the asset tag field name — your CI schema may use `CITag`, `SerialNumber`, or another field instead of `AssetTag`. Update the `$filter` in the proxy |
+| `Ivanti CI update failed: 400` | Internal field name wrong | Field names in the PATCH body must match the **internal** names from Ivanti Studio exactly — verify capitalization and spelling |
+| `Ivanti CI update failed: 404` | RecId format wrong | Some Ivanti versions use GUIDs, others use numeric IDs. Log the RecId and check the format against a known CI's URL in the Ivanti UI |
+
+<Tip>
+  The Ivanti REST API path varies slightly between Ivanti Neurons, Ivanti Service Manager (cloud), and Ivanti Service Manager (on-prem). If `/api/v1/businessobjects/CI` returns 404, try `/api/odata/businessobjects/CI` or check your Ivanti instance's API documentation at `IVANTI_URL/api/docs`.
+</Tip>
+
+---
+
+## What your team gains
+
+CI records in Ivanti reflect where assets were physically last confirmed — not where they were when someone last ran a discovery scan or updated a spreadsheet. As techs work tickets, Forager feeds that location data back into Ivanti automatically. By the time an auditor or facilities manager pulls a CI report, the location data is current without a dedicated inventory walk.

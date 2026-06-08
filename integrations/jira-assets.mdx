@@ -1,116 +1,244 @@
 ---
 title: "Jira Service Management Assets"
-description: "Push Forager attestation events into JSM Assets (formerly Insight)"
+description: "Push Forager attestation events into JSM Assets so your Insight objects always reflect where devices were last physically confirmed"
 ---
 
-## Overview
+JSM Assets (formerly Atlassian Insight) is the asset management layer inside Jira Service Management. When a tech confirms an asset's location in Forager, this integration updates the matching Insight object — so your CMDB reflects physical reality, not just what was imported months ago.
 
-JSM Assets (formerly Atlassian Insight) stores configuration items as **objects** with user-defined attributes. Because object schemas are custom, you need to map Forager's fields to your specific attribute IDs. A lightweight proxy handles the lookup and attribute update.
+**Choose this approach if** your team tracks configuration items in JSM Assets and wants location data to stay current from normal field work without a dedicated inventory project.
 
----
+## What happens
 
-## Field mapping
-
-JSM Assets uses a flexible attribute model — attribute names and IDs depend on your object type schema. The recommended attribute names for Forager data:
-
-| Forager field | JSM Assets attribute | Notes |
-|---|---|---|
-| `asset_tag` | `Name` or `Asset Tag` | Used to look up the object by AQL query |
-| `attributes.Location` | `Location` | Full breadcrumb path |
-| `attributes.Room` | `Room` | Room name only |
-| `attributes["Last Confirmed By"]` | `Last Confirmed By` | Tech display name |
-| `attributes["Last Confirmed At"]` | `Last Confirmed At` | ISO 8601 timestamp |
-| `attributes["Forager Status"]` | `Forager Status` | `match`, `mismatch_confirmed`, etc. |
-
-### JSM Assets payload (pre-built)
-
-When you select **JSM Assets (Jira)** as the target platform in Webhook Settings, Forager sends this shape:
-
-```json
-{
-  "event": "forager.attestation",
-  "asset_tag": "BIO-4721",
-  "attributes": {
-    "Location": "Memorial Hospital / Floor 3 / Biomedical Storage",
-    "Room": "Biomedical Storage",
-    "Last Confirmed By": "Maria Ortega",
-    "Last Confirmed At": "2026-06-07T14:23:11Z",
-    "Forager Status": "match"
-  }
-}
+```
+Tech scans SRV-0291 in Server Room 3A (Forager app)
+  → Attestation recorded in Forager
+  → Forager POSTs to your proxy endpoint
+  → Proxy queries JSM Assets by AQL to find the object
+  → Object attributes updated: Location, Last Confirmed By, Last Confirmed At, Forager Status
 ```
 
 ---
 
-## Proxy setup
+## JSM Assets setup
 
-### Prerequisites
+### Step 1 — Create an API token
 
-- Atlassian API token (account.atlassian.com → Security → API tokens)
-- Your Atlassian account email
-- Your JSM workspace ID and object type ID (from JSM Assets settings)
-- Attribute IDs for Location, Room, Last Confirmed By, Last Confirmed At, Forager Status
+1. Go to [id.atlassian.com/manage-profile/security/api-tokens](https://id.atlassian.com/manage-profile/security/api-tokens)
+2. Click **Create API token**
+3. Label it `Forager Integration` and copy the token — you won't see it again
+
+Use a service account email if your organization has one. If not, use the admin email that owns the JSM project.
+
+### Step 2 — Add Forager attributes to your object type
+
+JSM Assets uses a flexible schema — you define the attributes on each object type. You need five attributes to store Forager data.
+
+1. Go to your JSM project → **Assets** in the left nav
+2. Open **Object Types** → select the type that holds your assets (e.g. `Hardware`, `Medical Device`)
+3. Click **Attributes** → **Add attribute** for each:
+
+| Attribute name | Type | Notes |
+|---|---|---|
+| `Location` | Text | Full breadcrumb — `Memorial Hospital / Floor 3 / Biomedical Storage` |
+| `Room` | Text | Room name only — `Biomedical Storage` |
+| `Last Confirmed By` | Text | Tech's display name |
+| `Last Confirmed At` | Text | ISO 8601 timestamp |
+| `Forager Status` | Text | `match`, `mismatch_confirmed`, `mismatch_dismissed`, or `new_asset` |
+
+4. For each attribute, note its **Attribute ID** — you'll see it in the URL when you click on the attribute row (e.g. `…/attribute/47`). You need these IDs in the proxy configuration.
 
 <Tip>
-  Find attribute IDs in JSM Assets: **Object Types** → select your type → **Attributes** tab → hover over the attribute name to see its ID in the URL.
+  If your object type already has a `Location` attribute, use it — don't create a duplicate. Just note its existing ID.
 </Tip>
 
-### Node.js proxy
+### Step 3 — Find your workspace ID
+
+1. In JSM Assets, click the gear icon → **Workspace settings**
+2. Your workspace ID appears in the URL: `…/assets/workspace/WORKSPACE_ID/…`
+3. Copy it — you'll need it for the proxy and API calls
+
+---
+
+## Proxy deployment
+
+The proxy receives Forager's webhook, runs an AQL query to find the Insight object, and updates its attributes.
+
+### Create `api/forager.js`
 
 ```js
 const ATLASSIAN_EMAIL = process.env.ATLASSIAN_EMAIL
 const ATLASSIAN_TOKEN = process.env.ATLASSIAN_TOKEN
 const WORKSPACE_ID    = process.env.JSM_WORKSPACE_ID
 
-// Your schema's attribute IDs — update these for your workspace
-const ATTR = {
-  location:       process.env.ATTR_LOCATION,
-  room:           process.env.ATTR_ROOM,
-  confirmedBy:    process.env.ATTR_CONFIRMED_BY,
-  confirmedAt:    process.env.ATTR_CONFIRMED_AT,
-  foragerStatus:  process.env.ATTR_FORAGER_STATUS,
+// Attribute IDs from your object type schema — update these
+const ATTR_ID = {
+  location:      process.env.ATTR_LOCATION,       // e.g. "47"
+  room:          process.env.ATTR_ROOM,            // e.g. "48"
+  confirmedBy:   process.env.ATTR_CONFIRMED_BY,    // e.g. "49"
+  confirmedAt:   process.env.ATTR_CONFIRMED_AT,    // e.g. "50"
+  foragerStatus: process.env.ATTR_FORAGER_STATUS,  // e.g. "51"
+  objectTypeId:  process.env.OBJECT_TYPE_ID,       // e.g. "12"
 }
 
 const auth = Buffer.from(`${ATLASSIAN_EMAIL}:${ATLASSIAN_TOKEN}`).toString('base64')
 const baseUrl = `https://api.atlassian.com/jsm/assets/workspace/${WORKSPACE_ID}`
 
 export default async function handler(req, res) {
-  const { asset_tag, attributes } = req.body
+  // Validate shared secret
+  if (req.headers['x-forager-secret'] !== process.env.SHARED_SECRET) {
+    return res.status(401).json({ error: 'Unauthorized' })
+  }
 
-  // 1. Find object by asset tag via AQL
+  const { asset_tag, attributes } = req.body
+  if (!asset_tag) {
+    return res.status(400).json({ error: 'asset_tag is required' })
+  }
+
+  const headers = { Authorization: `Basic ${auth}`, 'Content-Type': 'application/json' }
+
+  // 1. Find the object by asset tag using AQL
+  // Adjust the AQL query to match your attribute name for the asset tag
+  const aql = `objectType = "${ATTR_ID.objectTypeId}" AND "Asset Tag" = "${asset_tag}"`
   const aqlRes = await fetch(
-    `${baseUrl}/v1/object/aql?qlQuery=${encodeURIComponent(`"Asset Tag" = "${asset_tag}"`)}`,
-    { headers: { Authorization: `Basic ${auth}` } }
+    `${baseUrl}/v1/object/aql?qlQuery=${encodeURIComponent(aql)}&resultPerPage=1`,
+    { headers }
   )
+  if (!aqlRes.ok) {
+    console.error('AQL query failed:', aqlRes.status, await aqlRes.text())
+    return res.status(502).json({ error: 'JSM Assets query failed' })
+  }
   const { values } = await aqlRes.json()
-  if (!values?.length) return res.status(404).json({ error: 'Object not found' })
+  if (!values?.length) {
+    console.warn('Object not found in JSM Assets:', asset_tag)
+    return res.status(200).json({ skipped: true, reason: 'object_not_found' })
+  }
 
   const objectId = values[0].id
 
   // 2. Update the object's attributes
-  await fetch(`${baseUrl}/v1/object/${objectId}`, {
+  const updateRes = await fetch(`${baseUrl}/v1/object/${objectId}`, {
     method: 'PUT',
-    headers: { Authorization: `Basic ${auth}`, 'Content-Type': 'application/json' },
+    headers,
     body: JSON.stringify({
-      objectTypeId: process.env.OBJECT_TYPE_ID,
+      objectTypeId: ATTR_ID.objectTypeId,
       attributes: [
-        { objectTypeAttributeId: ATTR.location,      objectAttributeValues: [{ value: attributes.Location }] },
-        { objectTypeAttributeId: ATTR.room,          objectAttributeValues: [{ value: attributes.Room }] },
-        { objectTypeAttributeId: ATTR.confirmedBy,   objectAttributeValues: [{ value: attributes['Last Confirmed By'] }] },
-        { objectTypeAttributeId: ATTR.confirmedAt,   objectAttributeValues: [{ value: attributes['Last Confirmed At'] }] },
-        { objectTypeAttributeId: ATTR.foragerStatus, objectAttributeValues: [{ value: attributes['Forager Status'] }] },
+        { objectTypeAttributeId: ATTR_ID.location,      objectAttributeValues: [{ value: attributes.Location }] },
+        { objectTypeAttributeId: ATTR_ID.room,          objectAttributeValues: [{ value: attributes.Room }] },
+        { objectTypeAttributeId: ATTR_ID.confirmedBy,   objectAttributeValues: [{ value: attributes['Last Confirmed By'] }] },
+        { objectTypeAttributeId: ATTR_ID.confirmedAt,   objectAttributeValues: [{ value: attributes['Last Confirmed At'] }] },
+        { objectTypeAttributeId: ATTR_ID.foragerStatus, objectAttributeValues: [{ value: attributes['Forager Status'] }] },
       ],
     }),
   })
 
-  res.status(200).json({ ok: true })
+  if (!updateRes.ok) {
+    console.error('JSM Assets update failed:', updateRes.status, await updateRes.text())
+    return res.status(502).json({ error: 'JSM Assets update failed' })
+  }
+
+  return res.status(200).json({ ok: true, object_id: objectId })
 }
 ```
 
-### Webhook configuration in Forager
+### Environment variables
+
+Create a `.env` file for local testing (never commit):
+
+```bash
+ATLASSIAN_EMAIL=your.email@company.com
+ATLASSIAN_TOKEN=your_api_token
+JSM_WORKSPACE_ID=abc123-def456
+OBJECT_TYPE_ID=12
+ATTR_LOCATION=47
+ATTR_ROOM=48
+ATTR_CONFIRMED_BY=49
+ATTR_CONFIRMED_AT=50
+ATTR_FORAGER_STATUS=51
+SHARED_SECRET=choose_a_random_string_here
+```
+
+### Deploy to Vercel
+
+```bash
+npx vercel --prod
+```
+
+Add all environment variables in **Project → Settings → Environment Variables**.
+
+---
+
+## Forager configuration
 
 1. Go to **Dashboard → Settings → Webhooks** → **Add Webhook**
-2. **Name:** `JSM Assets`
-3. **Endpoint URL:** your proxy URL
-4. **Target Platform:** `JSM Assets (Jira)`
-5. **Auth Header / Value:** credential your proxy expects
+2. Fill in:
+
+| Field | Value |
+|---|---|
+| **Name** | `JSM Assets` |
+| **Endpoint URL** | Your proxy URL + `/api/forager` |
+| **Target Platform** | `JSM Assets (Jira)` |
+| **Auth Header Name** | `X-Forager-Secret` |
+| **Auth Header Value** | Your `SHARED_SECRET` value |
+
+---
+
+## Testing
+
+```bash
+curl -X POST "https://your-proxy.vercel.app/api/forager" \
+  -H "Content-Type: application/json" \
+  -H "X-Forager-Secret: your_shared_secret" \
+  -d '{
+    "event": "forager.attestation",
+    "asset_tag": "SRV-0291",
+    "attributes": {
+      "Location": "Memorial Hospital / Floor 3 / Server Room 3A",
+      "Room": "Server Room 3A",
+      "Last Confirmed By": "James Kowalski",
+      "Last Confirmed At": "2026-06-07T14:23:11Z",
+      "Forager Status": "match"
+    }
+  }'
+```
+
+**Expected response:**
+```json
+{ "ok": true, "object_id": "abc123" }
+```
+
+Then open the Insight object in JSM Assets and verify the `Location`, `Last Confirmed By`, and `Last Confirmed At` attributes were updated.
+
+---
+
+## Troubleshooting
+
+| Symptom | Likely cause | Fix |
+|---|---|---|
+| `401` from proxy | Wrong `SHARED_SECRET` | Verify the header value in Forager matches `SHARED_SECRET` in the proxy |
+| `401` from Atlassian API | Bad API token or email | Test: `curl -u "email:token" "https://api.atlassian.com/jsm/assets/workspace/WORKSPACE_ID/v1/objectschema/list"` |
+| `skipped: object_not_found` | AQL query didn't match | Check the attribute name in your AQL — it must match the attribute label exactly (case-sensitive) |
+| `502` on update | Attribute ID wrong | Confirm each `ATTR_*` env var by hovering the attribute name in JSM Assets settings — the ID is in the URL |
+| `objectTypeId` mismatch | Object type ID wrong | In JSM Assets, click your object type — the ID appears in the URL |
+| Attributes update but object doesn't appear changed | Schema permissions | Ensure the Atlassian account has edit access to the Assets workspace |
+
+---
+
+## Customizing the AQL query
+
+The default AQL assumes your objects have an attribute named exactly `Asset Tag`. If your schema uses a different name (e.g. `Asset ID`, `CI Tag`), update the query:
+
+```js
+const aql = `objectType = "${ATTR_ID.objectTypeId}" AND "Your Attribute Name" = "${asset_tag}"`
+```
+
+You can also scope the query to a specific object schema to improve performance:
+
+```js
+const aql = `objectSchema = "IT Assets" AND "Asset Tag" = "${asset_tag}"`
+```
+
+---
+
+## What your team gains
+
+JSM Assets becomes a live record of physical asset locations — updated as a side effect of normal field work, not a dedicated inventory project. Your ITSM tickets automatically have accurate location context, reducing the back-and-forth between biomedical engineers, IT, and facilities when a device needs to be tracked down.

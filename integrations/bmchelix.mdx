@@ -1,114 +1,239 @@
 ---
 title: "BMC Helix ITSM"
-description: "Push Forager attestation events into BMC Helix Configuration Items"
+description: "Push Forager attestation events into BMC Helix CI records so confirmed locations are visible to anyone querying the CMDB"
 ---
 
-## Overview
+BMC Helix ITSM stores your infrastructure and clinical equipment as **Configuration Items** in the AR System. When a tech confirms an asset's location in Forager, this integration writes the confirmed location directly to the CI record — so anyone querying the CMDB sees the last physically verified location, not a stale import.
 
-BMC Helix ITSM stores physical assets as **Configuration Items** in the `AST:BMC_BaseElement` form. Forager can push location data to Helix CI records using the AR System REST API. A proxy handles authentication and record lookup.
+**Choose this approach if** your organization runs BMC Helix ITSM (on-prem or Helix Platform SaaS) and wants location data flowing from field attestations into your CI lifecycle without manual data entry.
 
----
+## What happens
 
-## Field mapping
-
-| Forager field | BMC Helix CI field | Notes |
-|---|---|---|
-| `values["Asset Tag"]` | `Tag Number` | Used to look up the CI record |
-| `values["Location"]` | `Location` | Text field — full breadcrumb |
-| `values["Last Scan By"]` | Custom field (e.g. `Forager_ConfirmedBy`) | Helix doesn't have a built-in "last confirmed by" field; use a custom field |
-| `values["Last Scan Time"]` | `Scan Date` or `Last_Inventory_Date` | Native Helix timestamp fields |
-| `values["Status"]` | Custom field (e.g. `Forager_Result`) | `match`, `mismatch_confirmed`, etc. |
-
-### BMC Helix payload (pre-built)
-
-When you select **BMC Helix ITSM** as the target platform in Webhook Settings, Forager sends this shape:
-
-```json
-{
-  "event": "forager.attestation",
-  "values": {
-    "Asset Tag": "BIO-4721",
-    "Location": "Memorial Hospital / Floor 3 / Biomedical Storage",
-    "Last Scan By": "Maria Ortega",
-    "Last Scan Time": "2026-06-07T14:23:11Z",
-    "Status": "match"
-  }
-}
+```
+Tech scans BED-1142 in ICU Pod B (Forager app)
+  → Attestation recorded in Forager
+  → Forager POSTs to your proxy endpoint
+  → Proxy authenticates to AR System, looks up CI by Tag Number
+  → CI fields updated: Location, Last Scan By, Last Scan Time, Forager Result
 ```
 
 ---
 
-## Proxy setup
+## BMC Helix setup
 
-### Prerequisites
+### Step 1 — Create a dedicated integration account
 
-- BMC Helix instance URL (e.g. `https://yourcompany.onbmc.com`)
-- AR System user credentials with write access to `AST:BMC_BaseElement`
-- JWT token endpoint: `/api/jwt/login`
+Create a BMC Helix user account for the integration. A dedicated account makes it easy to audit integration writes and rotate credentials independently.
 
-### Node.js proxy
+1. Log in as an administrator
+2. Go to **Remedy ITSM → User Management → Create User**
+3. Set:
+   - **Login Name:** `forager_integration`
+   - **License Type:** `Fixed` (required for API access)
+   - **Password:** strong, saved securely
+4. Assign the **CMDB Submitter** and **Asset Viewer** roles — these allow reading and updating asset CI records
+
+<Note>
+  If your Helix instance uses SSO, you may need to create the account through your identity provider and then add the AR System roles through the Helix admin console. Coordinate with your BMC administrator.
+</Note>
+
+### Step 2 — Add custom fields to AST:BMC_BaseElement
+
+The integration writes to four custom fields. Add them to your asset CI form class:
+
+1. In AR System Administration, go to **Database → Form → AST:BMC_BaseElement**
+2. Open **Columns** and add:
+
+| Field label | AR field name | Type | Notes |
+|---|---|---|---|
+| Forager Location | `Forager_Location` | Character (500) | Full breadcrumb path |
+| Forager Confirmed By | `Forager_ConfirmedBy` | Character (200) | Tech display name |
+| Forager Last Scan | `Forager_LastScan` | Date/Time | ISO 8601 timestamp |
+| Forager Result | `Forager_Result` | Character (50) | `match`, `mismatch_confirmed`, etc. |
+
+<Tip>
+  If you prefer, you can map to the native `Location` field on the CI form. The native field accepts free text in many Helix configurations — test with a manual update in AR System Administrator to confirm before relying on it in the proxy.
+</Tip>
+
+---
+
+## Proxy deployment
+
+The proxy handles JWT authentication (AR System tokens expire and must be refreshed), the CI lookup by tag number, and the field update.
+
+### Create `api/forager.js`
 
 ```js
 const HELIX_URL  = process.env.HELIX_URL   // https://yourcompany.onbmc.com
-const HELIX_USER = process.env.HELIX_USER
+const HELIX_USER = process.env.HELIX_USER  // forager_integration
 const HELIX_PASS = process.env.HELIX_PASS
 
+// AR System JWT tokens expire — fetch a fresh one per request
+// (For high-volume deployments, cache the token and refresh before expiry)
 async function getToken() {
   const res = await fetch(`${HELIX_URL}/api/jwt/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({ username: HELIX_USER, password: HELIX_PASS }),
   })
+  if (!res.ok) throw new Error(`JWT login failed: ${res.status}`)
   const { token } = await res.json()
   return token
 }
 
 export default async function handler(req, res) {
+  // Validate shared secret
+  if (req.headers['x-forager-secret'] !== process.env.SHARED_SECRET) {
+    return res.status(401).json({ error: 'Unauthorized' })
+  }
+
   const { values } = req.body
-  const assetTag = values['Asset Tag']
-  const token = await getToken()
+  const assetTag = values?.['Asset Tag']
+  if (!assetTag) {
+    return res.status(400).json({ error: 'Asset Tag is required' })
+  }
+
+  let token
+  try {
+    token = await getToken()
+  } catch (err) {
+    console.error('Helix auth failed:', err.message)
+    return res.status(502).json({ error: 'Helix authentication failed' })
+  }
 
   const headers = {
     Authorization: `AR-JWT ${token}`,
     'Content-Type': 'application/json',
   }
 
-  // 1. Look up CI by asset tag
+  // 1. Look up CI by Tag Number
+  // AR System query syntax: 'Field Name' = "value"
+  const query = encodeURIComponent(`'Tag Number' = "${assetTag}"`)
   const searchRes = await fetch(
-    `${HELIX_URL}/api/arsys/v1/entry/AST:BMC_BaseElement?q='Tag+Number'="${encodeURIComponent(assetTag)}"&fields=values(Request ID)`,
+    `${HELIX_URL}/api/arsys/v1/entry/AST:BMC_BaseElement` +
+    `?q=${query}&fields=values(Request%20ID)`,
     { headers }
   )
+  if (!searchRes.ok) {
+    console.error('Helix search failed:', searchRes.status, await searchRes.text())
+    return res.status(502).json({ error: 'Helix CI lookup failed' })
+  }
   const { entries } = await searchRes.json()
-  if (!entries?.length) return res.status(404).json({ error: 'CI not found' })
+  if (!entries?.length) {
+    console.warn('CI not found in Helix:', assetTag)
+    return res.status(200).json({ skipped: true, reason: 'ci_not_found' })
+  }
 
   const requestId = entries[0].values['Request ID']
 
   // 2. Update CI fields
-  await fetch(`${HELIX_URL}/api/arsys/v1/entry/AST:BMC_BaseElement/${encodeURIComponent(requestId)}`, {
-    method: 'PUT',
-    headers,
-    body: JSON.stringify({
-      values: {
-        Location:         values['Location'],
-        Forager_ConfirmedBy: values['Last Scan By'],
-        Last_Inventory_Date: values['Last Scan Time'],
-        Forager_Result:   values['Status'],
-      },
-    }),
-  })
+  const updateRes = await fetch(
+    `${HELIX_URL}/api/arsys/v1/entry/AST:BMC_BaseElement/${encodeURIComponent(requestId)}`,
+    {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify({
+        values: {
+          Forager_Location:    values['Location'],
+          Forager_ConfirmedBy: values['Last Scan By'],
+          Forager_LastScan:    values['Last Scan Time'],
+          Forager_Result:      values['Status'],
+        },
+      }),
+    }
+  )
 
-  res.status(200).json({ ok: true })
+  // AR System returns 204 No Content on successful PUT
+  if (updateRes.status !== 204 && !updateRes.ok) {
+    console.error('Helix update failed:', updateRes.status, await updateRes.text())
+    return res.status(502).json({ error: 'Helix CI update failed' })
+  }
+
+  return res.status(200).json({ ok: true, request_id: requestId })
 }
 ```
 
-<Note>
-  BMC Helix field names in the AR System API use underscore format internally (e.g. `Tag_Number`, `Last_Inventory_Date`). Verify exact field names against your instance's schema using the AR System API Explorer at `/arsys/shared/devstudio/`.
-</Note>
+### Environment variables
 
-### Webhook configuration in Forager
+```bash
+HELIX_URL=https://yourcompany.onbmc.com
+HELIX_USER=forager_integration
+HELIX_PASS=your_integration_password
+SHARED_SECRET=choose_a_random_string_here
+```
+
+### Deploy to Vercel
+
+```bash
+npx vercel --prod
+```
+
+Add all environment variables in **Project → Settings → Environment Variables**.
+
+---
+
+## Forager configuration
 
 1. Go to **Dashboard → Settings → Webhooks** → **Add Webhook**
-2. **Name:** `BMC Helix`
-3. **Endpoint URL:** your proxy URL
-4. **Target Platform:** `BMC Helix ITSM`
-5. **Auth Header / Value:** credential your proxy expects
+2. Fill in:
+
+| Field | Value |
+|---|---|
+| **Name** | `BMC Helix` |
+| **Endpoint URL** | Your proxy URL + `/api/forager` |
+| **Target Platform** | `BMC Helix ITSM` |
+| **Auth Header Name** | `X-Forager-Secret` |
+| **Auth Header Value** | Your `SHARED_SECRET` value |
+
+---
+
+## Testing
+
+```bash
+curl -X POST "https://your-proxy.vercel.app/api/forager" \
+  -H "Content-Type: application/json" \
+  -H "X-Forager-Secret: your_shared_secret" \
+  -d '{
+    "event": "forager.attestation",
+    "values": {
+      "Asset Tag": "BED-1142",
+      "Location": "Memorial Hospital / Floor 2 / ICU Pod B",
+      "Last Scan By": "Maria Ortega",
+      "Last Scan Time": "2026-06-07T14:23:11Z",
+      "Status": "match"
+    }
+  }'
+```
+
+**Expected response:**
+```json
+{ "ok": true, "request_id": "000000000000042" }
+```
+
+Then open the CI record in Helix and verify:
+- `Forager_Location` = `Memorial Hospital / Floor 2 / ICU Pod B`
+- `Forager_ConfirmedBy` = `Maria Ortega`
+- `Forager_LastScan` is updated
+
+---
+
+## Troubleshooting
+
+| Symptom | Likely cause | Fix |
+|---|---|---|
+| `401` from proxy | Wrong `SHARED_SECRET` | Verify the header value in Forager matches `SHARED_SECRET` in the proxy |
+| `JWT login failed: 401` | Bad Helix credentials | Test manually: `curl -X POST "HELIX_URL/api/jwt/login" -d "username=forager_integration&password=..."` |
+| `JWT login failed: 403` | Account lacks AR System REST access | In AR System Administration, confirm the user has the `REST API` permission |
+| `skipped: ci_not_found` | Tag Number doesn't match | Compare the asset tag in Forager to the `Tag Number` field in the Helix CI record — they must match exactly |
+| `Helix CI update failed: 400` | Field name wrong | AR System field names are case-sensitive. Verify `Forager_Location` etc. in AR System Administrator exactly as created |
+| Update returns `204` but fields unchanged | Wrong Request ID | Confirm the lookup is returning the correct entry by checking the `Request ID` in the log and opening that CI directly |
+
+<Note>
+  AR System field names in the REST API use the database column name, not the display label. If you named the field `Forager Location` (with a space), the API name may be `Forager_Location` or `FORAGER_LOCATION` depending on your Helix version. Check in AR System Administrator → Field Properties.
+</Note>
+
+---
+
+## What your team gains
+
+Helix CI records reflect the last physically verified location of every asset — updated automatically as techs work their normal queues. This eliminates the gap between your CMDB's imported data and where assets actually are. Auditors querying Helix get attestation-backed location data, and your CMDB team spends less time chasing stale records between discovery cycles.

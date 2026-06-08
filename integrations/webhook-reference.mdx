@@ -128,10 +128,22 @@ When configuring your webhook in Forager, use this template to produce the docum
 ## Integration guides
 
 <CardGroup cols={2}>
+  <Card title="Freshservice" icon="building" href="/integrations/freshservice">
+    Asset Management — field mapping, proxy, custom fields, troubleshooting
+  </Card>
+  <Card title="JSM Assets (Jira)" icon="j" href="/integrations/jira-assets">
+    Insight objects — AQL lookup, attribute mapping, proxy setup
+  </Card>
+  <Card title="BMC Helix ITSM" icon="server" href="/integrations/bmchelix">
+    CI records via AR System REST API — JWT auth, field mapping, proxy
+  </Card>
+  <Card title="Ivanti Neurons" icon="shield" href="/integrations/ivanti">
+    CI business objects — OAuth 2.0, OData filter, field mapping, proxy
+  </Card>
   <Card title="ServiceNow — Scripted REST API" icon="code" href="/integrations/servicenow-scripted-rest-api">
-    Real-time CI location updates via ServiceNow's scripted REST endpoint
+    Real-time CI updates — no proxy needed, runs natively in ServiceNow
   </Card>
   <Card title="ServiceNow — Import Sets" icon="table" href="/integrations/servicenow-import-sets">
-    Staged CMDB writes via the Import Set API
+    Staged CMDB writes for change-controlled environments
   </Card>
 </CardGroup>
