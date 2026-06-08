@@ -12,11 +12,35 @@ description: "Complete reference for Hiverise Labs staff: provisioning, onboardi
 As a Forager platform admin, you are responsible for the full lifecycle of a customer account: provisioning it, onboarding the team, managing billing, and supporting the customer through their pilot and into production. This guide consolidates every operational workflow into one reference.
 
 **Quick navigation:**
+- [Account security](#account-security) — MFA requirement for admin accounts
 - [Provisioning a company](#provisioning-a-company) — creating new accounts and sending invites
 - [Pilot onboarding runbook](#pilot-onboarding-runbook) — end-to-end from first contact to first attestation
 - [Billing management](#billing-management) — subscription status, dunning, grace period, suspension
 - [Sprint management](#sprint-management) — creating and managing tech competitions
+- [Audit log](#audit-log) — reviewing admin action history
 - [Self-hosting](#self-hosting) — enterprise on-premises deployments
+
+---
+
+## Account security
+
+### MFA requirement
+
+All Hiverise Labs admin accounts are required to use TOTP multi-factor authentication. This is enforced at the platform level — any admin session that has not completed MFA is redirected to the enrollment page before accessing any dashboard page.
+
+**First login after MFA enforcement:** When you sign in, you will be redirected to `dashboard.hiveriselabs.com/mfa`. Follow the on-screen prompts:
+
+1. Scan the QR code with any TOTP app (Google Authenticator, Authy, 1Password, Bitwarden, etc.)
+2. Enter the 6-digit code to confirm enrollment
+3. You are redirected to the dashboard — your session is now fully authenticated
+
+MFA enrollment is one-time per account. On subsequent logins you will be prompted to enter a 6-digit code before entering the dashboard.
+
+**If you get a new phone or switch authenticator apps:** Go to **Dashboard → Settings → Security → Replace authenticator**. This removes your current TOTP factor and redirects you to re-enroll immediately. You cannot access the dashboard between removal and re-enrollment.
+
+<Warning>
+  Do not share your TOTP secret or recovery codes. If you lose access to your authenticator app with no recovery option, contact another Hiverise Labs admin to manually remove your MFA factor from the Supabase Auth dashboard.
+</Warning>
 
 ---
 
@@ -368,6 +392,75 @@ Open **Admin → Sprints** → find the LIVE sprint → tap **End Early**. The e
 - **Schedule the next sprint before the current one ends** to avoid a gap with no visible banner
 - **Target stale assets** — 🔥 10-point assets are devices not confirmed in 90+ days; a sprint focused on clearing those is more valuable than one that re-confirms recently-seen devices
 - **Name sprints clearly** — techs see the name on their home screen throughout the competition
+
+---
+
+## Audit log
+
+Every privileged admin action on the Forager platform is recorded in an append-only audit log. Entries are written via the service role key — they cannot be inserted, modified, or deleted from the application layer or by any user.
+
+### What is logged
+
+| Action | Trigger |
+|---|---|
+| `provision_company` | New company created via `/admin` |
+| `set_company_status` | Subscription status changed (active / grace / suspended) |
+| `set_photo_attestation` | Photo attestation feature toggled for a company |
+| `create_notice` | In-app notice posted |
+| `deactivate_notice` | In-app notice deactivated |
+| `invite_member` | Team member invite sent |
+| `update_member_role` | User role changed (admin / lead / tech) |
+| `remove_member` | User removed from a company |
+| `create_webhook` | Webhook endpoint created |
+| `update_webhook` | Webhook endpoint updated |
+| `toggle_webhook` | Webhook enabled or disabled |
+| `delete_webhook` | Webhook endpoint deleted |
+| `create_sprint` | Remediation sprint created |
+| `close_sprint` | Remediation sprint closed |
+| `create_zone` | Location node (zone) created from floor plan |
+| `assign_assets_to_zone` | Assets bulk-assigned to a zone |
+
+Each entry records: actor ID, actor email (preserved even if account is deleted), action type, affected resource type and ID, company scope, timestamp, and a `meta` JSONB object with action-specific detail (e.g., old/new role, webhook URL, asset count).
+
+### Accessing the audit log
+
+**Via Supabase Studio (recommended for ad-hoc review):**
+
+1. Open [Supabase Studio](https://supabase.com/dashboard) → select the Forager project
+2. Go to **Table Editor → audit\_logs**
+3. Filter by `company_id`, `actor_email`, or `action` as needed
+4. Sort by `created_at DESC` for most recent first
+
+**Via psql (for bulk export or scripted review):**
+
+```sql
+-- All actions for a company in the last 30 days
+SELECT created_at, actor_email, action, resource_type, resource_id, meta
+FROM audit_logs
+WHERE company_id = '<uuid>'
+  AND created_at > now() - interval '30 days'
+ORDER BY created_at DESC;
+
+-- All role changes across all companies
+SELECT created_at, actor_email, company_id, resource_id, meta
+FROM audit_logs
+WHERE action = 'update_member_role'
+ORDER BY created_at DESC;
+
+-- All super-admin actions (no company_id)
+SELECT created_at, actor_email, action, resource_type, resource_id, meta
+FROM audit_logs
+WHERE company_id IS NULL
+ORDER BY created_at DESC;
+```
+
+### Retention
+
+Audit log entries are retained indefinitely. No automatic purge runs. If a company churns and its `companies` row is deleted, log entries for that company have their `company_id` set to NULL but are otherwise preserved.
+
+<Note>
+  A web-based audit log viewer within the dashboard is on the roadmap. Until it ships, Supabase Studio or psql are the access paths.
+</Note>
 
 ---
 
