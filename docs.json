@@ -85,8 +85,6 @@
       {
         "group": "Admin",
         "pages": [
-          "admin/admin-guide",
-          "admin/notice-management",
           "admin/sprint-management",
           "admin/remediation-sprints",
           "admin/inventory-placement",
