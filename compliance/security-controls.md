@@ -46,7 +46,12 @@ This document is a living inventory of Forager's implemented security controls, 
 #### Session management
 - **Status:** Implemented (Supabase Auth defaults)
 - **Mechanism:** JWT-based sessions via Supabase Auth. Access tokens expire per Supabase Auth configuration. Refresh tokens are rotated on use. Sessions are invalidated server-side on sign-out.
-- **Gap:** Explicit session expiry timeout and failed-login lockout policy are not yet configured beyond Supabase defaults. See backlog.
+- **Gap:** Explicit session expiry timeout and failed-login lockout policy are not yet configured beyond Supabase defaults. Blocked on Supabase Pro upgrade (bank deposit pending as of 2026-06-07). See backlog.
+
+#### Credential rotation policy
+- **Status:** Implemented (2026-06-07)
+- **Mechanism:** Defined rotation schedule for all platform credentials. Supabase service role key, anon key, and Backblaze B2 application keys rotate annually every January. Customer webhook secrets rotate on customer request or on suspected exposure. Immediate rotation procedure defined for suspected compromise. Rotation log maintained in the policy document.
+- **Evidence:** `forager-docs/compliance/credential-rotation-policy.md`
 
 ---
 
@@ -66,10 +71,15 @@ This document is a living inventory of Forager's implemented security controls, 
 
 ### CC8 — Change Management
 
+#### Change management policy
+- **Status:** Implemented (2026-06-07)
+- **Mechanism:** All changes go through feature branches and pull requests against `main`. Direct pushes to `main` are prohibited. PR review is required — self-approval is documented as an acknowledged limitation during the solo-founder phase, with git history and Vercel deployment logs as compensating controls. Emergency hotfixes have a defined procedure with mandatory post-fix review within 24 hours.
+- **Evidence:** `forager-docs/compliance/change-management-policy.md`
+
 #### Database migrations as version-controlled schema changes
 - **Status:** Implemented
-- **Mechanism:** All schema changes are applied via numbered SQL migration files in `forager/supabase/migrations/`. Migrations are applied in order using psql. No ad-hoc schema changes are made in the Supabase Studio SQL editor.
-- **Gap:** No formal PR review gate enforces this — a developer could apply an unapproved migration. Change management policy formalization is in backlog.
+- **Mechanism:** All schema changes are applied via numbered SQL migration files in `forager/supabase/migrations/`. Migrations are applied manually via psql — not auto-applied by CI/CD. No ad-hoc schema changes via Supabase Studio SQL editor.
+- **Evidence:** `forager/supabase/migrations/` directory
 
 ---
 
@@ -99,6 +109,13 @@ This document is a living inventory of Forager's implemented security controls, 
 - **Status:** Implemented
 - **Mechanism:** `next_pmi_date` and `pmi_interval_days` are first-class columns on `assets`. The `asset_report` view computes `pmi_status` (overdue/due_soon/ok/none) from these values. PMI data is included in CSV import/export, making it auditable alongside other asset attributes.
 
+### P — Privacy
+
+#### Data retention and deletion policy
+- **Status:** Implemented (2026-06-07)
+- **Mechanism:** Defined retention periods for all data categories. Active customer data retained for subscription duration. Churned customers get a 30-day grace period, then data retained until a deletion request is received. Attestation records and audit logs retained 7 years as compliance artifacts. Customer-requested deletion completed within 30 days. Deletion procedure defined per table with dependency order. GDPR right to erasure and HIPAA overlap documented.
+- **Evidence:** `forager-docs/compliance/data-retention-policy.md`
+
 ---
 
 ## Backlog — Controls not yet implemented
@@ -110,11 +127,11 @@ These are planned but not yet in place. They must be addressed before the SOC 2 
 | Incident response plan | High | **Done** — see [Incident Response Plan](/compliance/incident-response-plan) |
 | Vendor risk assessments (Supabase, Vercel, Cloudflare, Backblaze) | High | **Done** — see [Vendor Risk Assessments](/compliance/vendor-risk-assessments) |
 | Supabase BAA (required if any customer use case involves PHI) | High | **Action required** — confirm use cases and execute BAA if needed |
-| Formal change management gates (PR review requirements) | Medium | Not enforced |
-| Session expiry and failed-login lockout policy | Medium | At Supabase defaults |
-| Credential rotation schedule | Medium | Not defined |
+| Formal change management gates (PR review requirements) | Medium | **Done** — see [Change Management Policy](/compliance/change-management-policy) |
+| Session expiry and failed-login lockout policy | Medium | **Blocked** — Supabase Pro upgrade pending (bank deposit; resume 2026-06) |
+| Credential rotation schedule | Medium | **Done** — see [Credential Rotation Policy](/compliance/credential-rotation-policy) |
 | Annual penetration test | Medium | Not scheduled |
-| Data retention and deletion policy | Medium | Not implemented |
+| Data retention and deletion policy | Medium | **Done** — see [Data Retention Policy](/compliance/data-retention-policy) |
 | Super-admin `/admin` route MFA step-up | Lower | Not implemented |
 | Storage bucket policy audit | Lower | Not reviewed |
 | Failed auth event surfacing in Grafana/Loki | Lower | Not wired |
@@ -127,3 +144,4 @@ These are planned but not yet in place. They must be addressed before the SOC 2 
 |---|---|
 | 2026-06-07 | Initial version. MFA enforcement, webhook Vault encryption, and audit log all shipped. |
 | 2026-06-07 | IR plan and vendor risk assessments documented. Supabase BAA action item flagged. |
+| 2026-06-07 | Change management policy, credential rotation policy, and data retention policy all shipped. Session/password policy blocked on Supabase Pro upgrade. |
