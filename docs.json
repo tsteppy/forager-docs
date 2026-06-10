@@ -14,11 +14,17 @@
     "dark": "/logo/forager-dark.svg",
     "href": "https://harbinge.rs"
   },
+  "analytics": {
+    "umami": {
+      "websiteId": "ab2b09ba-4db9-4e07-831e-70277d5d3270",
+      "src": "https://stats.harbinge.rs/script.js"
+    }
+  },
   "navbar": {
     "primary": {
       "type": "button",
       "label": "Go to Dashboard",
-      "href": "https://dashboard.hiveriselabs.com"
+      "href": "https://dashboard.harbinge.rs"
     }
   },
   "font": {
