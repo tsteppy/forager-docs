@@ -22,10 +22,32 @@ The first time you open the app in hardware scanner mode, a one-time notificatio
 Not all facilities use barcodes or QR codes. If your organization relies on plain text labels (like Brother P-Touch labels or handwritten asset tags), you can use the built-in Optical Character Recognition (OCR) feature.
 
 To scan text instead of a barcode:
-1. Tap the **Text** toggle at the top of the camera preview screen to switch out of Barcode mode.
-2. Aim the camera at the text label. The app will automatically crop the bounding box, read the text, and confirm the asset.
-3. This process works identically to barcode scanning and generates the same photo attestation proof (if enabled).
+1. Tap the **Text Label** toggle at the top of the camera preview to switch out of Barcode mode.
+2. Aim the camera at the text label. The app reads the text, confirms the asset, and — if photo attestation is enabled — automatically crops and saves a photo of the tag.
 
+### Filtering by prefix
+
+If your facility uses location-coded asset tags (for example `F3-00142` on Floor 3, or `WH-A009` in the warehouse), you can filter the scanner to only pick up tags that start with a specific prefix. This prevents the camera from mistakenly reading unrelated text in the background.
+
+To add a prefix filter:
+1. Switch to **Text Label** mode — a text input appears below the toggle.
+2. Type your prefix (e.g. `F3-`) and press **Done** on the keyboard, or tap the checkmark icon.
+3. A chip appears showing your active prefix. The scanner now only confirms assets that start with that prefix.
+4. Add more prefixes for additional tag formats in the same area (e.g. `[F3-] [MED-]`).
+5. Tap any chip to remove it.
+
+<Tip>
+  Your prefixes are remembered between sessions. When you come back the next day, your last-used prefixes are pre-filled. Just clear them if you've moved to a different area with a different tag format.
+</Tip>
+
+This process works identically to barcode scanning and generates the same photo attestation proof (if enabled).
+
+
+## Torch (flashlight)
+
+When scanning in dim environments — equipment closets, under desks, behind server racks — tap the **flashlight icon** in the top-right corner of the camera preview to turn on the torch. Tap again to turn it off.
+
+The torch works in both Barcode and Text Label modes. It resets to off each time you leave the scan screen.
 
 ## Photo attestation
 
