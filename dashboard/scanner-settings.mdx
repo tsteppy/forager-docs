@@ -71,6 +71,29 @@ WHERE id = '<your-company-id>';
   A dashboard UI for company-level scanner mode is planned. Until then, use the SQL above via the Supabase dashboard or contact Harbinge.rs support to set it for you.
 </Note>
 
+## Text scanning — company-wide regex
+
+When techs use Text Label (OCR) mode, the app validates scanned text against a regular expression before treating it as a valid asset tag. This prevents the scanner from picking up stray text in the environment.
+
+**Priority order:**
+1. If the tech has typed their own prefix chips (e.g. `F3-`, `MED-`), those take precedence.
+2. If no chips are set, the app falls back to your company-wide regex.
+3. If no company regex is set, the app uses a safe default: `^[A-Z0-9-]{4,20}$`.
+
+To set a company-wide regex fallback:
+
+```sql
+UPDATE companies
+SET scanner_mode_regex = '^(INV|EQ|MED)-[0-9]{4,6}$'
+WHERE id = '<your-company-id>';
+```
+
+Replace the example pattern with your own. Standard regex syntax applies — the pattern is anchored automatically.
+
+<Note>
+  A dashboard UI for this setting is planned. Until then, use the SQL above or contact Harbinge.rs support.
+</Note>
+
 ## What techs see on first use
 
 The first time a tech opens the app on a device where hardware scanner mode is active (either from the company default or a device override), a notification appears at the bottom of the home screen:
