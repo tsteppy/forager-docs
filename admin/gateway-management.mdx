@@ -1,0 +1,87 @@
+---
+title: "Gateway Management"
+description: "Deploying and monitoring Raven Gateway concentrators"
+---
+
+Gateways are LilyGO T-SIM7080G-S3 devices that listen for ESP-NOW broadcasts from Raven beacons and forward them to Forager over LTE-M. Each Gateway covers an area of roughly 50–80 meters line-of-sight indoors (walls reduce range).
+
+<Note>
+  Gateway firmware setup and registration requires IT or super-admin access. See [Gateway Firmware Setup](/super-admin/gateway-firmware) for initial provisioning steps.
+</Note>
+
+---
+
+## Gateway Fleet screen (Dashboard)
+
+**Raven Fleet → Gateways tab** shows all registered Gateways for your company:
+
+| Column | Description |
+|---|---|
+| **Name** | Admin-assigned label |
+| **MAC** | Hardware ID of the Gateway |
+| **Last seen** | Most recent upload to Forager |
+| **Signal** | Cellular RSSI in dBm at last upload |
+| **Ravens heard** | Count of distinct Ravens this Gateway has received from |
+
+### Signal quality guide
+
+| RSSI | Quality |
+|---|---|
+| −70 dBm or better | Strong |
+| −70 to −85 dBm | Good |
+| −85 to −95 dBm | Fair — consider repositioning |
+| Below −95 dBm | Poor — likely causing upload failures |
+
+---
+
+## Placement guidelines
+
+- **One Gateway per floor** is usually sufficient for most facilities. Add a second if the floor has large concrete sections or RF-blocking server rooms.
+- Mount at a central point on the floor, elevated (above false ceiling tiles works well).
+- Keep the LTE antenna unobstructed — avoid metal enclosures.
+- Power via USB-C wall adapter or PoE injector with USB-C adapter. The Gateway has no battery — it requires continuous power.
+- The Gateway needs cellular coverage. Check Hologram's coverage map for your address if signal is poor.
+
+---
+
+## LED status
+
+The Gateway has a single status LED on GPIO 12:
+
+| Pattern | Meaning |
+|---|---|
+| 3 slow blinks at boot | LTE-M connected successfully |
+| 5 rapid blinks then solid off | Modem power-on failed — check antenna and SIM |
+| 1 blink every ~15 min | Successful upload batch |
+| No activity | Idle, waiting for Raven broadcasts or upload interval |
+
+---
+
+## SIM management
+
+Gateways use Hologram eUICC SIMs on the Global-3 plan. Manage SIMs at [dashboard.hologram.io](https://dashboard.hologram.io):
+
+- **Connected** — Gateway is active and has a data session open
+- **Idle** — SIM is active but no current data session (normal between uploads)
+- **Deactivated** — SIM needs to be reactivated
+
+Data usage is minimal — each upload batch is under 2 KB. A fleet of 20 Ravens uploading every 15 minutes uses less than 5 MB/month per Gateway.
+
+---
+
+## Troubleshooting
+
+**Gateway shows Offline in the fleet view**
+- Check the SIM status in Hologram dashboard
+- Confirm the LTE antenna is attached
+- Connect via USB and check serial output (115200 baud) — `SHOW_SIGNAL` shows live RSSI
+
+**Ravens not appearing on Gateway**
+- Verify the Raven firmware is flashed and the HMAC secret is set
+- Confirm the Raven is within range (move closer temporarily to test)
+- Check serial output on the Gateway — incoming ESP-NOW packets print `[gw] rx mac=...`
+
+**Upload failures (HTTP error in serial)**
+- `HTTP 401` — API key mismatch. Re-run `SET_APIKEY` and update the hash in the database
+- `HTTP 500` — Edge Function error. Check Supabase function logs
+- Connect error — cellular issue. Run `SHOW_SIGNAL` and check SIM status

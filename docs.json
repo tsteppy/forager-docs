@@ -66,6 +66,7 @@
           "field-tech/home-screen",
         "field-tech/scanning-assets",
           "field-tech/understanding-confirmations",
+          "field-tech/raven-fleet",
           "field-tech/survey-mode",
           "field-tech/coverage",
           "field-tech/attestation-log",
@@ -91,10 +92,23 @@
       {
         "group": "Admin",
         "pages": [
+          "admin/raven-fleet",
+          "admin/gateway-management",
           "admin/sprint-management",
           "admin/remediation-sprints",
           "admin/inventory-placement",
           "admin/self-hosting"
+        ]
+      },
+      {
+        "group": "Super Admin",
+        "pages": [
+          "super-admin/raven-firmware",
+          "super-admin/admin-guide",
+          "super-admin/provisioning-companies",
+          "super-admin/billing-management",
+          "super-admin/notice-management",
+          "super-admin/pilot-onboarding-guide"
         ]
       },
       {

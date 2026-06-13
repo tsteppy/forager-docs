@@ -1,0 +1,66 @@
+---
+title: "Raven Fleet"
+description: "Viewing beacon status and scanning NFC stickers for field identification"
+---
+
+Ravens are small wireless beacons attached to assets. They periodically broadcast their identity and battery level to Gateway concentrators deployed in your facility, so Forager can confirm asset presence even when no tech is nearby.
+
+As a field tech, you don't provision Ravens — your admin handles that. Your interactions with Ravens are:
+
+- Checking beacon status when an asset hasn't been confirmed recently
+- Scanning an NFC sticker to identify which asset a Raven is attached to
+
+---
+
+## Raven Fleet screen
+
+Tap **Raven Fleet** on the home screen to see every beacon assigned to your accessible sites.
+
+### Beacon card
+
+Each Raven appears as a card showing:
+
+| Field | What it means |
+|---|---|
+| **Name** | The label your admin gave this Raven (e.g. "Raven-042") |
+| **Asset** | The asset this Raven is attached to, if assigned |
+| **Battery** | Last reported battery level (updates each check-in) |
+| **Last seen** | When the Gateway last received a broadcast from this Raven |
+| **Status chip** | See below |
+
+### Status chips
+
+| Status | Meaning |
+|---|---|
+| **Online** | Checked in within the expected interval |
+| **Late** | Missed one or more expected check-ins — battery may be low or the Raven is out of range |
+| **Offline** | No check-in for an extended period — needs attention |
+
+<Note>
+  A **Late** or **Offline** status doesn't necessarily mean the asset is missing — it means the beacon hasn't reported recently. Check the battery level and confirm the asset is still in range of a Gateway.
+</Note>
+
+---
+
+## Scanning an NFC sticker
+
+Every Raven has an NFC sticker attached near it on the asset. Scanning the sticker identifies the asset instantly — useful when you're at the equipment and want to confirm what you're looking at without hunting for a barcode.
+
+<Steps>
+  <Step title="Tap the NFC area on your phone to the sticker">
+    Hold the NFC-capable area of your phone (usually the back, center) near the small NFC sticker on or near the asset.
+  </Step>
+  <Step title="The app opens automatically">
+    If Forager is installed, your phone opens the Raven detail screen for that beacon, showing the asset name, location, and recent check-in history.
+  </Step>
+</Steps>
+
+<Tip>
+  If nothing happens when you tap the sticker, make sure NFC is enabled on your phone — go to **Settings → Connected devices → NFC** and toggle it on.
+</Tip>
+
+---
+
+## Raven badge on asset cards
+
+When a Raven is assigned to an asset, a small **📡** badge appears on the asset's card in the asset roster and attestation log. This indicates that asset has automated presence confirmation active in addition to manual scanning.

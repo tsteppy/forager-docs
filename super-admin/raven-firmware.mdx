@@ -1,0 +1,194 @@
+---
+title: "Raven & Gateway Firmware Setup"
+description: "Flashing and provisioning Raven beacons and Gateway concentrators"
+---
+
+This guide is for IT staff or super-admins performing initial hardware setup. You need a computer with Arduino IDE (or arduino-cli), USB cables, and access to a serial terminal.
+
+---
+
+## Raven beacon (ESP-WROOM-32)
+
+### Hardware required
+
+- AITRIP ESP-WROOM-32 dev board
+- 18650 Battery Shield V8 + 2× Samsung 30Q 18650 cells
+- Micro USB cable (for flashing only)
+- IP65 weatherproof enclosure
+- NTAG215 anti-metal NFC sticker (1 per Raven)
+
+### Arduino IDE setup
+
+1. Install the ESP32 board package:
+   - Open Arduino IDE → **File → Preferences**
+   - Add to Additional Boards Manager URLs:
+     `https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json`
+   - Go to **Tools → Board → Boards Manager**, search `esp32`, install
+2. Set board: **Tools → Board → ESP32 Dev Module**
+3. Set port: **Tools → Port → /dev/ttyUSB0** (Linux) or the appropriate COM port (Windows)
+4. Set upload speed: **921600**
+
+### Flashing
+
+1. Clone the firmware repo: `git clone https://github.com/tsteppy/ravens`
+2. Open `raven-firmware/raven-firmware.ino` in Arduino IDE
+3. Connect the Raven via micro USB
+4. Click **Upload**
+
+### Provisioning via serial CLI
+
+After flashing, open Serial Monitor at **115200 baud**. You have a 5-second window on each boot to enter commands. The window extends 5 seconds after each command received.
+
+```
+SHOW_MAC                         → prints the board's WiFi STA MAC address
+SET_SECRET:<64-char-hex>         → sets the HMAC secret (from Android provisioning screen)
+SET_INTERVAL:<minutes>           → sets scan interval (1–1440, default 60)
+SHOW_CONFIG                      → prints current config
+TEST_HMAC                        → verifies HMAC is working with the stored secret
+```
+
+**Provisioning order:**
+1. Flash firmware
+2. `SHOW_MAC` → note the MAC
+3. In the Forager Android app: **Raven Fleet → + → enter MAC → Create Raven + Write NFC**
+4. The app shows the generated HMAC secret — copy it
+5. In Serial Monitor: `SET_SECRET:<paste-secret-here>`
+6. `SHOW_CONFIG` to confirm
+7. Tap the NTAG215 sticker to the phone when the app prompts
+8. Power-cycle the Raven — watch for `[raven] broadcast: sent` on next boot
+
+<Warning>
+  The HMAC secret must be set on the hardware **before** the Raven goes into service. A Raven broadcasting without a secret sends unsigned payloads — check-ins will be recorded with `hmac_valid: false` and will not generate attestations.
+</Warning>
+
+### Normal boot sequence
+
+```
+[raven] boot
+[raven] provisioning window: 5s ...
+[raven] scanning WiFi...
+[raven] wifi: 12 BSSIDs
+[raven] scanning BLE...
+[raven] ble: 4 devices
+[raven] payload: 107 bytes (wifi=12 ble=4 seq=3 hmac=a1b2c3d4)
+[raven] broadcast: sent
+[raven] sleeping 60 min
+```
+
+After `sleeping N min` the device enters deep sleep. No further serial output until the next wake.
+
+### Known prototype limitations
+
+- **Battery readout is stubbed at 100%** — the dev board has no ADC voltage divider. Accurate battery percentage requires a hardware revision.
+- **`hasMoved` and `isCharging` flags are always 0** — accelerometer and charge detection are future hardware additions.
+- **Temperature is stubbed at 0°C** — no temperature sensor on the dev board.
+
+---
+
+## Gateway concentrator (LilyGO T-SIM7080G-S3)
+
+### Hardware required
+
+- LilyGO T-SIM7080G-S3 board
+- Hologram eUICC nano SIM (activated at dashboard.hologram.io on Global-3 plan)
+- LTE external antenna (U.FL connector)
+- USB-C power supply (5V/2A minimum)
+
+### arduino-cli setup
+
+The Gateway uses the ESP32-S3 native USB CDC. Use arduino-cli (not Arduino IDE GUI):
+
+```bash
+# Install ESP32 board package
+arduino-cli core install esp32:esp32
+
+# Compile
+arduino-cli compile \
+  --fqbn esp32:esp32:esp32s3:CDCOnBoot=cdc \
+  /path/to/ravens/gateway-firmware
+
+# Flash (Gateway must be connected via USB-C)
+arduino-cli upload \
+  --fqbn esp32:esp32:esp32s3:CDCOnBoot=cdc \
+  --port /dev/ttyACM0 \
+  /path/to/ravens/gateway-firmware
+```
+
+<Note>
+  The Gateway appears as `/dev/ttyACM0` on Linux (USB CDC). If the port is not found, check `dmesg | tail` — it should show `cdc_acm` with the board's MAC address as serial number.
+</Note>
+
+### Provisioning via serial CLI
+
+Open a serial terminal at **115200 baud**. On each boot there is a 5-second provisioning window:
+
+```
+SET_APIKEY:<64-char-hex>     → sets the Bearer token used to authenticate to Forager
+SET_INTERVAL:<minutes>       → sets upload interval (1–60, default 5 — recommend 15)
+SHOW_CONFIG                  → prints MAC, key prefix, interval
+SHOW_SIGNAL                  → prints live cellular RSSI in dBm
+```
+
+**Provisioning order:**
+1. Flash firmware
+2. Generate an API key: `openssl rand -hex 32`
+3. `SET_APIKEY:<key>` within 5 seconds of boot (reset with DTR or power-cycle to get a fresh window)
+4. `SET_INTERVAL:15`
+5. `SHOW_CONFIG` → note the MAC address
+6. Register in Forager database (super-admin step — see below)
+7. Attach LTE antenna, insert activated Hologram SIM, power up
+8. Confirm: `[gw] LTE-M connected, IP: ...` in serial
+
+### Registering the Gateway in Forager
+
+After provisioning, register the Gateway in the Supabase database. You need the raw API key and the Gateway MAC from `SHOW_CONFIG`.
+
+Compute the SHA-256 hash of the raw key:
+```bash
+echo -n "<raw_api_key>" | openssl dgst -sha256 -hex | awk '{print $2}'
+```
+
+Then run via the Supabase CLI or SQL editor:
+```sql
+INSERT INTO public.gateways (company_id, hardware_id, name, api_key_hash)
+VALUES (
+  '<company_id>',
+  '<mac_from_SHOW_CONFIG>',
+  'Gateway1',
+  '<sha256_hash>'
+);
+```
+
+To find the company ID:
+```sql
+SELECT id, name FROM public.companies;
+```
+
+### Normal boot sequence
+
+```
+[gw] boot
+[gw] provisioning window: 5s ...
+[gw] waiting for modem AT...
+[gw] modem OK
+[gw] connecting LTE-M (APN=hologram)...
+[gw] LTE-M connected, IP: 10.x.x.x
+[gw] ESP-NOW receiver ready
+[gw] running — listening for Ravens
+```
+
+Three slow LED blinks follow LTE-M connect. After that the Gateway is fully operational.
+
+### Re-provisioning a Gateway
+
+If you need to change the API key (e.g. rotation or security incident):
+
+1. Connect via USB-C
+2. Power-cycle or toggle DTR to trigger the boot window
+3. `SET_APIKEY:<new_key>`
+4. Update the hash in the database:
+   ```sql
+   UPDATE public.gateways
+   SET api_key_hash = encode(sha256('<new_key>'::bytea), 'hex')
+   WHERE hardware_id = '<mac>';
+   ```

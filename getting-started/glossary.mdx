@@ -29,6 +29,10 @@ A measure of how well a location has been surveyed. Rooms with more RF captures 
 
 The RF signal pattern captured at a specific location during a survey. A fingerprint is built from Wi-Fi access point signal strengths and BLE beacon readings. The app matches a tech's current signal environment against stored fingerprints to determine which room they are in.
 
+## Gateway
+
+A LilyGO T-SIM7080G-S3 hardware concentrator that listens for ESP-NOW broadcasts from Raven beacons and forwards check-ins to Forager over LTE-M cellular. Gateways require a Hologram SIM, an LTE antenna, and continuous USB-C power. One Gateway per floor is typically sufficient.
+
 ## Location Node
 
 A named point in the physical location hierarchy — a building, floor, wing, room, or any other level. Location nodes form a tree: a building contains floors, floors contain rooms. Assets and survey fingerprints are both associated with location nodes.
@@ -72,7 +76,21 @@ An optional feature that captures a tight JPEG crop of the physical asset tag at
 
 Photo Attestation is opt-in per company and has no effect on hardware scanner attestations (no camera frame is available in that path).
 
-## Presence Confirmation
+## Presence Confirmation (Manual)
+
+See **Presence Confirmation**.
+
+## Presence Confirmation (Passive)
+
+Automated asset presence confirmation performed by Raven beacons without any tech involvement. Ravens broadcast their identity periodically; a Gateway forwards the broadcast to Forager, which records a check-in for the assigned asset. Passive confirmation does not replace manual scanning for compliance attestation but confirms an asset is still in the facility between manual sweeps.
+
+## Raven
+
+A battery-powered ESP32 beacon attached to an asset. Ravens wake on a configurable interval, scan nearby Wi-Fi access points and BLE devices, sign the payload with a per-device HMAC secret, and broadcast via ESP-NOW to any nearby Gateway. Ravens are provisioned via the Forager Android app; each Raven has a paired NTAG215 NFC sticker for field identification.
+
+## Raven Check-in
+
+A recorded event when a Gateway successfully receives and verifies a broadcast from a Raven. Each check-in updates the Raven's `last_seen` timestamp and battery level. Check-ins with a valid HMAC are recorded as `hmac_valid: true`.
 
 The core Forager workflow. As field techs move through a facility doing normal IT work, they scan device barcodes. The app compares each scanned device's recorded location to where the tech currently is. Matches are silently recorded; mismatches trigger an alert. Compliance attestation accumulates continuously without dedicated audit walks.
 

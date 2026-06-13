@@ -1,0 +1,129 @@
+---
+title: "Raven Fleet (Admin)"
+description: "Provisioning Raven beacons, managing intervals, and monitoring fleet health"
+---
+
+Ravens are battery-powered ESP32 beacons that attach to assets and broadcast their identity over ESP-NOW radio to nearby Gateway concentrators. The Gateway forwards check-ins to Forager over LTE-M. This enables passive, continuous presence confirmation without any tech involvement.
+
+<Note>
+  Gateways must be deployed and registered before Ravens can report. See [Gateway Management](/admin/gateway-management) for Gateway setup.
+</Note>
+
+---
+
+## How Ravens work
+
+1. A Raven wakes on a configurable interval (default 60 minutes)
+2. It scans nearby Wi-Fi access points and BLE devices
+3. It signs the payload with a per-device HMAC secret and broadcasts via ESP-NOW
+4. A nearby Gateway receives the broadcast and batches it with others
+5. Every 15 minutes the Gateway POSTs the batch to Forager over LTE-M
+6. Forager verifies the HMAC, records a check-in, and updates the asset's **Last Seen** timestamp
+
+---
+
+## Raven Fleet screen (Dashboard)
+
+On the web dashboard, **Raven Fleet** shows a live table of all Ravens in your company:
+
+| Column | Description |
+|---|---|
+| **Name** | Admin-assigned label |
+| **Asset** | Linked asset, if assigned |
+| **Battery** | Last reported percentage |
+| **Last seen** | Timestamp of most recent valid check-in |
+| **Interval** | How often this Raven wakes and broadcasts |
+| **Gateway** | Which gateway received the last broadcast |
+| **Status** | Online / Late / Offline |
+
+### Status thresholds
+
+| Status | Condition |
+|---|---|
+| **Online** | Last seen within `interval × 1.5` |
+| **Late** | Last seen between `interval × 1.5` and `interval × 3` |
+| **Offline** | Last seen more than `interval × 3` ago, or never |
+
+---
+
+## Provisioning a Raven
+
+Provisioning creates a Forager record for a new Raven beacon and writes its identity to an NFC sticker. You need:
+
+- The Raven hardware (ESP-WROOM-32 dev board or production unit), powered on
+- The Raven firmware flashed (see [Raven Firmware Setup](/super-admin/raven-firmware))
+- The HMAC secret set on the device via serial CLI (see [Raven Firmware Setup](/super-admin/raven-firmware))
+- An NTAG215 anti-metal NFC sticker
+- The Forager Android app (admin role)
+
+<Steps>
+  <Step title="Get the Raven's MAC address">
+    Connect the Raven to a computer via USB and open Serial Monitor (115200 baud). Within 5 seconds of boot, type `SHOW_MAC`. Note the MAC address (e.g. `38:18:2b:8a:e3:50`).
+  </Step>
+  <Step title="Open Raven Fleet in the app">
+    In the Forager Android app, tap **Raven Fleet** on the home screen, then tap the **+** button.
+  </Step>
+  <Step title="Enter the MAC address and name">
+    Type the MAC address exactly as shown by `SHOW_MAC` (lowercase, colon-separated). Give the Raven a descriptive name (e.g. `Raven-042` or the asset tag it will be attached to).
+
+    Tap **Create Raven + Write NFC**. The button activates once both fields are filled in.
+  </Step>
+  <Step title="Write the NFC sticker">
+    The app generates a unique HMAC secret, stores it in Forager, and then prompts you to tap the NFC sticker. Hold the NTAG215 sticker near the back of your phone. The app writes the Raven's identity to the sticker and confirms success.
+
+    <Warning>
+      Note the HMAC secret shown on screen — you need to enter it on the Raven hardware before it can report. Copy it and complete the serial step before closing the app.
+    </Warning>
+  </Step>
+  <Step title="Set the secret on the Raven hardware">
+    In Serial Monitor, type `SET_SECRET:<64-char-hex>` and paste the secret from the app. Confirm with `SHOW_CONFIG`.
+
+    Once the secret is set, power-cycle the Raven and verify the serial output shows `[raven] broadcast: sent`. The first check-in should appear in Raven Fleet within one upload interval (default 15 minutes after the Gateway next polls).
+  </Step>
+  <Step title="Attach the NFC sticker to the asset">
+    Stick the programmed NTAG215 sticker on or adjacent to the asset. The sticker allows anyone with the Forager app to tap it and identify the asset instantly.
+  </Step>
+</Steps>
+
+---
+
+## Assigning a Raven to an asset
+
+A Raven doesn't need to be assigned to an asset to report check-ins, but assignment is required for:
+- The Raven badge (📡) to appear on the asset card
+- The `last_seen` field on the asset detail to update
+- Future fingerprint-based attestation (when Zone Map is available)
+
+To assign: open the Raven's detail in the app → tap **Assign to asset** → search for the asset by tag or name.
+
+---
+
+## Changing the scan interval
+
+The scan interval controls how often a Raven wakes up and broadcasts. Shorter intervals mean more frequent check-ins but faster battery drain.
+
+To change: open the Raven's detail → tap the interval chip → select a new interval → **Save**.
+
+<Note>
+  Interval changes are queued and delivered the next time the Raven checks in. The Raven must receive the update before the new interval takes effect. Until then, it continues broadcasting on its current interval.
+</Note>
+
+| Interval | Battery life (est.) | Use case |
+|---|---|---|
+| 15 min | ~2 weeks | High-value or mobile equipment |
+| 60 min | ~6 weeks | Standard equipment |
+| 6 hours | ~6 months | Fixed, rarely-moved equipment |
+
+---
+
+## Hardware Swap
+
+When a Raven beacon hardware needs to be replaced (dead battery, lost device):
+
+1. Open the Raven's detail in the app
+2. Tap **Replace hardware**
+3. Enter the new Raven's MAC address
+4. Tap NFC sticker to write new identity
+5. Set the new secret on the replacement hardware via `SET_SECRET:<key>`
+
+The Forager record (name, assigned asset, interval, history) is preserved. The old hardware MAC is decommissioned.
