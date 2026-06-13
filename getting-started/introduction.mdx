@@ -26,6 +26,9 @@ Location data accumulates as a side effect of existing work — no dedicated wal
   <Card title="Device Hunt" icon="magnifying-glass">
     When an asset can't be found, a tech uses Device Hunt to navigate to the last confirmed location. The app shows a floor plan with the device's last known room and updates as the tech moves.
   </Card>
+  <Card title="Raven Fleet" icon="radio">
+    Optional battery-powered beacons (Ravens) attach to assets and broadcast their presence automatically over radio, without any tech involvement. A Gateway concentrator forwards check-ins to Forager over LTE-M every 15 minutes.
+  </Card>
 </CardGroup>
 
 ## Who uses each part
@@ -35,14 +38,15 @@ Location data accumulates as a side effect of existing work — no dedicated wal
 | **Field tech** | Android app — scanning assets, running device hunts. Sees only the buildings assigned to them. |
 | **Site manager / regional lead** | Android app with multiple site assignments — switches between buildings using the site picker |
 | **IT director / manager** | Dashboard — floor plan view, attestation history, team oversight across all locations |
-| **IT admin** | Dashboard settings — webhook configuration, team management, site assignment |
+| **IT admin** | Dashboard settings — webhook configuration, team management, site assignment, Raven Fleet |
 | **ServiceNow admin** | Integration guide — connecting Forager to your CMDB |
+| **IT / facilities** | Raven and Gateway firmware setup — flashing beacons, provisioning Gateways, SIM activation |
 
 ## What Forager does not do
 
 - Forager does not track people — only assets
-- Forager does not require dedicated hardware (no beacons, no sensors)
 - Forager does not require GPS or active internet on the device during a scan
+- Raven beacons are optional — Forager works fully without them using the Android app alone
 
 ## Next step
 
