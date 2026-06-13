@@ -17,6 +17,10 @@ A record created each time a tech scans an asset. Every attestation captures: th
 
 Attestations are the audit artifact — they are immutable records of when each device was physically observed and where.
 
+## Biometric Lock
+
+A security feature that encrypts the Forager session on device and requires fingerprint or face authentication each time the app is opened. Enrollment happens automatically on first login. Managed via Profile → Security. If no biometrics are enrolled on the device, the feature is inactive and the app opens normally.
+
 ## Confirmation
 
 A successful attestation where the asset's recorded location matches the tech's current location. Also called a **match**. Confirmations update the asset's *Last Confirmed* date and count toward compliance coverage.
