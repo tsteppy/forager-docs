@@ -1,9 +1,9 @@
 ---
 title: "Biometric App Lock"
-description: "How Forager uses fingerprint and face unlock to protect your session"
+description: "How Forager uses your device's screen lock to protect your session"
 ---
 
-Forager encrypts your login session and locks it behind your device's biometric authentication — fingerprint or face unlock. Each time you open the app after it has been closed or your screen has locked, you will be asked to authenticate before your session is restored.
+Forager encrypts your login session and locks it behind your device's screen lock — fingerprint, face, PIN, or pattern. Each time you open the app after it has been closed or your screen has locked, you will be asked to authenticate before your session is restored.
 
 This protects your asset data and attestation history if your device is lost or used by someone else.
 
@@ -11,44 +11,50 @@ This protects your asset data and attestation history if your device is lost or 
 
 ## First login: enrollment
 
-When you sign in for the first time, Forager automatically encrypts your session. After the encryption completes, a sheet appears:
+When you sign in, Forager automatically encrypts your session using your device's screen lock. After encryption completes, a sheet appears:
 
 > **Biometric lock enabled**
 > Forager encrypted your session. Next time you open the app, you'll be asked for your fingerprint or face to unlock it. You can change this in Profile → Security.
 
-Tap **Got it** to continue to the app. No extra setup is required — your device's existing fingerprint or face enrollment is used automatically.
+Tap **Got it** to continue to the app. No extra setup is required — your device's existing screen lock is used automatically.
 
 <Note>
-  If your device has no fingerprint or face set up, biometric lock will not activate. You can still use Forager normally — you will just be taken directly to the home screen on each open instead of seeing the lock screen.
+  If your device has no screen lock configured (no PIN, pattern, fingerprint, or face), biometric lock will not activate. You can still use Forager normally — you will just be taken directly to the home screen on each open instead of seeing the lock screen.
 </Note>
 
 ---
 
 ## Unlocking the app
 
-When you open Forager after it has been closed or your screen locked, the lock screen appears automatically and the biometric prompt fires immediately:
+When you open Forager after it has been closed or your screen locked, the lock screen appears and the biometric prompt fires immediately:
 
 1. The lock screen shows the Forager logo and an **Unlock** button
-2. Your device's biometric prompt appears — scan your fingerprint or look at the camera
+2. Your device's authentication prompt appears — scan your fingerprint, look at the camera, or enter your PIN or pattern
 3. On success, you are taken directly to the home screen with your session restored
 
 You do not need to enter your email or password again.
 
 ### If authentication fails or is cancelled
 
-If you cancel the biometric prompt or it fails to recognize you, the lock screen remains visible with a message: **"Tap the button below to try again."**
+If you cancel the prompt or it fails to recognize you, the lock screen remains visible with a message: **"Tap the button below to try again."**
 
-Tap **Unlock** to try the biometric prompt again.
+Tap **Unlock** to try again.
 
-If biometric consistently fails (device in gloves, wet hands, etc.), tap **Sign in instead** to authenticate with your email and password. This clears the encrypted session and re-authenticates normally — your data is not lost.
+If authentication consistently fails (device in gloves, wet hands, etc.), tap **Sign in instead** to authenticate with your email and password. This clears the encrypted session and re-authenticates normally — your data is not lost.
 
-### If your biometric changes
+### If you change your screen lock
 
-If you add or remove a fingerprint or face on your device, Forager's encrypted key is automatically invalidated by the Android system. The next time you open the app, the lock screen will show:
+Adding new fingerprints or updating your face enrollment does not affect Forager's app lock. The app continues working normally — newly enrolled biometrics are accepted automatically by the system.
+
+If you remove all biometrics but keep a PIN or pattern, the lock remains active. You will be prompted to enter your PIN or pattern at each app open.
+
+If you remove all screen locks entirely, biometric lock will no longer activate and you will go directly to the home screen.
+
+In rare cases (device factory reset, key corruption), the lock screen may show:
 
 > **Your biometric credentials changed. Sign in to continue.**
 
-Tap **Sign in instead** and authenticate with email and password. Forager will re-encrypt your session with the new biometric credentials after you sign in.
+If this happens, tap **Sign in instead** and authenticate with email and password. Forager will re-encrypt your session after you sign in.
 
 ---
 
@@ -67,7 +73,7 @@ Tapping the toggle off shows a confirmation:
 > **Disable biometric lock?**
 > Your session data will remain encrypted, but Forager will no longer require authentication on launch.
 
-Confirm to disable. The next time you open the app, you will go directly to the home screen without a biometric prompt.
+Confirm to disable. The next time you open the app, you will go directly to the home screen without an authentication prompt.
 
 ### Re-enabling biometric lock
 
@@ -82,7 +88,7 @@ Toggle it back on. Biometric lock takes effect on the next app open.
 ## FAQ
 
 **Does biometric lock log me out?**
-No. It encrypts your session and requires biometric to decrypt it on open. Your login session is preserved — you do not have to re-enter your email or password each time.
+No. It encrypts your session and requires authentication to decrypt it on open. Your login session is preserved — you do not have to re-enter your email or password each time.
 
 **What if I forget my password after using biometric for a while?**
 Use the **Forgot password?** link on the sign-in screen. Forager will send a reset email to your registered address.
@@ -92,3 +98,6 @@ No. Biometric unlock is entirely local — your encrypted session is stored on y
 
 **Will biometric lock affect my scanning workflow?**
 Only on app open. Once unlocked, the app behaves exactly as normal — scanning, location detection, and syncing are unaffected.
+
+**I only have a PIN, no fingerprint. Does biometric lock still work?**
+Yes. Forager accepts any device screen lock — fingerprint, face, PIN, or pattern. If your device has a PIN but no biometrics, you will be prompted to enter your PIN at each app open.
